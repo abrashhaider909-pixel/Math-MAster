@@ -67,13 +67,11 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         if (!error && Array.isArray(data) && data.length > 0) {
           const a = data[0];
           if (a.password === cleanPass) {
-            return res
-              .status(200)
-              .json({
-                success: true,
-                role: "admin",
-                user: { username: a.username, name: a.name },
-              });
+            return res.status(200).json({
+              success: true,
+              role: "admin",
+              user: { username: a.username, name: a.name },
+            });
           }
         }
       } catch (e) {
