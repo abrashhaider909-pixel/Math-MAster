@@ -13,13 +13,16 @@ export interface LoginResponse {
   user?: { username: string; name: string };
   error?: string;
 }
-// Use explicit env var VITE_API_URL. In dev, default to localhost backend.
+
+// In production, use same-origin serverless functions at `/api`.
+// In development, allow overriding via `VITE_API_URL` or default to localhost backend.
 const rawApiUrl = import.meta.env.VITE_API_URL || "";
-const API_BASE = ((): string => {
-  if (rawApiUrl && rawApiUrl !== "") return rawApiUrl.replace(/\/$/, "");
-  // If running locally in dev mode, point to localhost:3000 or 5000 depending on env
-  if (import.meta.env.DEV) return "http://localhost:3000";
-  // Fallback to empty string to use same-origin (not recommended for production)
+const API_BASE = (() => {
+  if (import.meta.env.DEV) {
+    if (rawApiUrl && rawApiUrl !== "") return rawApiUrl.replace(/\/$/, "");
+    return "http://localhost:3000";
+  }
+  // Production -> same origin. Use relative paths like `/api/...`.
   return "";
 })();
 
@@ -36,17 +39,15 @@ async function safeFetchJson(input: RequestInfo, init?: RequestInit) {
     throw new Error(
       `HTTP ${res.status} ${res.statusText} - ${typeof body === "string" ? body : JSON.stringify(body)}`,
     );
-    // In production, use same-origin serverless functions at `/api`.
-    // In development, allow overriding via `VITE_API_URL` or default to localhost backend.
-    const rawApiUrl = import.meta.env.VITE_API_URL || "";
-    const API_BASE = (() => {
-      if (import.meta.env.DEV) {
-        if (rawApiUrl && rawApiUrl !== "") return rawApiUrl.replace(/\/$/, "");
-        return "http://localhost:3000";
-      }
-      // Production -> same origin. Use relative paths like `/api/...`.
-      return "";
-    })();
+  }
+  const ct = res.headers.get("content-type") || "";
+  if (ct.includes("application/json")) return res.json();
+  return res.text();
+}
+
+export const ApiService = {
+  async login(username: string, password: string): Promise<LoginResponse> {
+    try {
       const data = await safeFetchJson(`${API_BASE}/api/auth`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
