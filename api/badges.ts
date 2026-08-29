@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getStudents, getAttempts, getBadges } from "./_db";
+import { getStudents, getAttempts, getBadges } from "./_db.js";
 import { INITIAL_BADGES } from "../src/utils/storage";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {

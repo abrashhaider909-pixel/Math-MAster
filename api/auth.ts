@@ -1,5 +1,5 @@
 import type { VercelRequest, VercelResponse } from "@vercel/node";
-import { getStudents, getMode, useSupabase as _useSupabase } from "./_db";
+import { getStudents, getMode, useSupabase as _useSupabase } from "./_db.js";
 import { createClient } from "@supabase/supabase-js";
 
 const SUPABASE_URL = process.env.SUPABASE_URL || "";

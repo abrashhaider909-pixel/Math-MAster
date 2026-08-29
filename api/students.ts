@@ -4,7 +4,7 @@ import {
   createStudent,
   updateStudent,
   deleteStudent,
-} from "./_db";
+} from "./_db.js";
 
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
