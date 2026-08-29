@@ -31,7 +31,14 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .status(405)
       .json({ success: false, error: "Method not allowed" });
   } catch (e) {
+    // Try to parse safe JSON diagnostics from thrown Error messages
     console.error(e);
-    res.status(500).json({ success: false, error: (e as Error).message });
+    const msg = (e as Error).message || "";
+    try {
+      const parsed = JSON.parse(msg);
+      return res.status(500).json({ success: false, error: parsed });
+    } catch {
+      return res.status(500).json({ success: false, error: msg });
+    }
   }
 }

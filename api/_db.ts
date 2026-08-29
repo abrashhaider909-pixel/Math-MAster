@@ -197,11 +197,49 @@ export async function getStudents() {
 export async function createStudent(student: AnyObject) {
   ensureNotMissingSupabase();
   if (useSupabase) {
-    const { error } = await supabase
-      .from("students")
-      .insert([{ id: student.id, username: student.username, data: student }]);
-    if (error) throw error;
-    return student;
+    try {
+      const op = "insert:students";
+      const { data, error } = await supabase
+        .from("students")
+        .insert([{ id: student.id, username: student.username, data: student }]);
+      if (error) {
+        const host = (() => {
+          try {
+            return new URL(process.env.SUPABASE_URL || "").hostname;
+          } catch {
+            return null;
+          }
+        })();
+        const safe = {
+          host,
+          operation: op,
+          name: error.name || "SupabaseError",
+          message: (error.message || String(error)).slice(0, 200),
+        };
+        // eslint-disable-next-line no-console
+        console.error("[api/_db] supabase error", safe);
+        throw new Error(JSON.stringify(safe));
+      }
+      return student;
+    } catch (err) {
+      const e = err as Error;
+      const host = (() => {
+        try {
+          return new URL(process.env.SUPABASE_URL || "").hostname;
+        } catch {
+          return null;
+        }
+      })();
+      const safe = {
+        host,
+        operation: "insert:students",
+        name: e.name,
+        message: (e.message || String(e)).slice(0, 200),
+      };
+      // eslint-disable-next-line no-console
+      console.error("[api/_db] supabase exception", safe);
+      throw new Error(JSON.stringify(safe));
+    }
   }
   const db = await readLocalDb();
   db.students = db.students || [];
@@ -231,9 +269,47 @@ export async function updateStudent(id: string, student: AnyObject) {
 export async function deleteStudent(id: string) {
   ensureNotMissingSupabase();
   if (useSupabase) {
-    const { error } = await supabase.from("students").delete().eq("id", id);
-    if (error) throw error;
-    return true;
+    try {
+      const op = "delete:students";
+      const { data, error } = await supabase.from("students").delete().eq("id", id);
+      if (error) {
+        const host = (() => {
+          try {
+            return new URL(process.env.SUPABASE_URL || "").hostname;
+          } catch {
+            return null;
+          }
+        })();
+        const safe = {
+          host,
+          operation: op,
+          name: error.name || "SupabaseError",
+          message: (error.message || String(error)).slice(0, 200),
+        };
+        // eslint-disable-next-line no-console
+        console.error("[api/_db] supabase error", safe);
+        throw new Error(JSON.stringify(safe));
+      }
+      return true;
+    } catch (err) {
+      const e = err as Error;
+      const host = (() => {
+        try {
+          return new URL(process.env.SUPABASE_URL || "").hostname;
+        } catch {
+          return null;
+        }
+      })();
+      const safe = {
+        host,
+        operation: "delete:students",
+        name: e.name,
+        message: (e.message || String(e)).slice(0, 200),
+      };
+      // eslint-disable-next-line no-console
+      console.error("[api/_db] supabase exception", safe);
+      throw new Error(JSON.stringify(safe));
+    }
   }
   const db = await readLocalDb();
   db.students = (db.students || []).filter((s: any) => s.id !== id);

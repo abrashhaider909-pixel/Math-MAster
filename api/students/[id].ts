@@ -28,6 +28,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       .json({ success: false, error: "Method not allowed" });
   } catch (e) {
     console.error(e);
-    res.status(500).json({ success: false, error: (e as Error).message });
+    const msg = (e as Error).message || "";
+    try {
+      const parsed = JSON.parse(msg);
+      return res.status(500).json({ success: false, error: parsed });
+    } catch {
+      return res.status(500).json({ success: false, error: msg });
+    }
   }
 }
