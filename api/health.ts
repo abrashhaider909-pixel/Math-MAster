@@ -28,6 +28,13 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
 
     // If envs exist but the test fails in production, return a safe error for diagnosis
     if (isProduction && supDiag.hasSupabaseEnv && supTest && !supTest.ok) {
+      // include hostname validation hint if present
+      const hint = supDiag.supabaseHostnameInvalid
+        ? {
+            hostname: supDiag.supabaseHostname,
+            hint: "Supabase hostname looks invalid; check SUPABASE_URL env.",
+          }
+        : null;
       return res.status(502).json({
         status: "error",
         mode,
@@ -35,6 +42,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         hasSupabaseEnv: supDiag.hasSupabaseEnv,
         supabaseInitOk: supDiag.supabaseInitOk,
         supabaseFetch: supTest.result || null,
+        supabaseHostnameIssue: hint,
       });
     }
 

@@ -76,16 +76,36 @@ function ensureNotMissingSupabase() {
   }
 }
 
+// Helper to validate the SUPABASE_URL hostname looks like a real project ref
+function hostnameLooksInvalid(hostname: string | null) {
+  if (!hostname) return true;
+  // reject hostnames containing underscores or suspicious 'sb_publishable' prefix
+  if (hostname.indexOf("_") !== -1) return true;
+  if (/^sb_publishable/i.test(hostname)) return true;
+  // basic project ref pattern: alphanumeric + hyphens, then .supabase.co
+  if (!/^[a-z0-9-]+\.supabase\.co$/.test(hostname)) return true;
+  return false;
+}
+
 export function getSupabaseInitDiagnostic() {
   initSupabaseIfNeeded();
   const hasSupabaseEnv = Boolean(
     process.env.SUPABASE_URL &&
     (process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY),
   );
+  let hostname: string | null = null;
+  try {
+    hostname = new URL(process.env.SUPABASE_URL || "").hostname;
+  } catch {
+    hostname = null;
+  }
+  const hostnameInvalid = hostnameLooksInvalid(hostname);
   return {
     hasSupabaseEnv,
     supabaseInitOk: useSupabase,
     supabaseInitError: _supabaseInitError,
+    supabaseHostname: hostname,
+    supabaseHostnameInvalid: hostnameInvalid,
   };
 }
 
