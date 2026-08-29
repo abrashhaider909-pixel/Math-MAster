@@ -166,6 +166,12 @@ async function writeLocalDb(db: AnyObject) {
 
 export async function getMode() {
   initSupabaseIfNeeded();
+  const hasSupabaseEnv = Boolean(
+    process.env.SUPABASE_URL &&
+    (process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY),
+  );
+  // If envs are present, report 'supabase' mode even if init failed — health will surface init errors.
+  if (hasSupabaseEnv) return "supabase";
   return useSupabase ? "supabase" : "local";
 }
 
