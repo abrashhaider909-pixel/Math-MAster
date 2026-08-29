@@ -4,22 +4,37 @@ import { createClient } from "@supabase/supabase-js";
 
 type AnyObject = Record<string, any>;
 
-const SUPABASE_URL = process.env.SUPABASE_URL || "";
-const SUPABASE_SERVICE_KEY =
-  process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY || "";
 let supabase: any = null;
 let useSupabase = false;
-if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
+let _supabaseInitAttempted = false;
+let _supabaseInitError: string | null = null; // safe message only
+
+function initSupabaseIfNeeded() {
+  if (_supabaseInitAttempted) return;
+  _supabaseInitAttempted = true;
+
+  const SUPABASE_URL = process.env.SUPABASE_URL || "";
+  const SUPABASE_SERVICE_KEY =
+    process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY || "";
+
+  if (!SUPABASE_URL || !SUPABASE_SERVICE_KEY) {
+    _supabaseInitError = "Supabase env vars missing";
+    useSupabase = false;
+    supabase = null;
+    return;
+  }
+
   try {
+    // createClient should not throw normally; guard it anyway and record safe error
     supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
     useSupabase = true;
-  } catch (e) {
-    // Do not log secrets; only log that initialization failed
+    _supabaseInitError = null;
+  } catch (err) {
+    const e = err as Error;
+    // record safe diagnostic (type + message) but NEVER include the URL or key
+    _supabaseInitError = `${e.name}: ${e.message}`.slice(0, 200);
     // eslint-disable-next-line no-console
-    console.error(
-      "[api/_db] Supabase client initialization failed:",
-      (e as Error).message || String(e),
-    );
+    console.error("[api/_db] Supabase init error:", _supabaseInitError);
     useSupabase = false;
     supabase = null;
   }
@@ -42,10 +57,12 @@ const IS_PRODUCTION =
 const REQUIRE_SUPABASE_IN_PROD = IS_PRODUCTION && !useSupabase;
 
 function ensureNotMissingSupabase() {
+  initSupabaseIfNeeded();
   if (REQUIRE_SUPABASE_IN_PROD) {
-    throw new Error(
-      "SUPABASE_URL and SUPABASE_SERVICE_KEY are required in production (set them in Vercel environment variables).",
-    );
+    const msg = _supabaseInitError
+      ? `Supabase initialization failed: ${_supabaseInitError}`
+      : "SUPABASE_URL and SUPABASE_SERVICE_KEY are required in production (set them in Vercel environment variables).";
+    throw new Error(msg);
   }
 }
 
@@ -93,6 +110,7 @@ async function writeLocalDb(db: AnyObject) {
 }
 
 export async function getMode() {
+  initSupabaseIfNeeded();
   return useSupabase ? "supabase" : "local";
 }
 
