@@ -54,15 +54,70 @@ try {
 
 const IS_PRODUCTION =
   process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
-const REQUIRE_SUPABASE_IN_PROD = IS_PRODUCTION && !useSupabase;
 
 function ensureNotMissingSupabase() {
   initSupabaseIfNeeded();
-  if (REQUIRE_SUPABASE_IN_PROD) {
-    const msg = _supabaseInitError
-      ? `Supabase initialization failed: ${_supabaseInitError}`
-      : "SUPABASE_URL and SUPABASE_SERVICE_KEY are required in production (set them in Vercel environment variables).";
-    throw new Error(msg);
+  const hasSupabaseEnv = Boolean(
+    process.env.SUPABASE_URL &&
+    (process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY),
+  );
+  if (IS_PRODUCTION) {
+    if (!hasSupabaseEnv) {
+      throw new Error(
+        "SUPABASE_URL and SUPABASE_SERVICE_KEY are required in production (set them in Vercel environment variables).",
+      );
+    }
+    if (!useSupabase) {
+      const msg = _supabaseInitError
+        ? `Supabase initialization failed: ${_supabaseInitError}`
+        : "Supabase client not initialized";
+      throw new Error(msg);
+    }
+  }
+}
+
+export function getSupabaseInitDiagnostic() {
+  initSupabaseIfNeeded();
+  const hasSupabaseEnv = Boolean(
+    process.env.SUPABASE_URL &&
+    (process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY),
+  );
+  return {
+    hasSupabaseEnv,
+    supabaseInitOk: useSupabase,
+    supabaseInitError: _supabaseInitError,
+  };
+}
+
+export async function testSupabaseConnection() {
+  initSupabaseIfNeeded();
+  const hasSupabaseEnv = Boolean(
+    process.env.SUPABASE_URL &&
+    (process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY),
+  );
+  if (!hasSupabaseEnv) return { ok: false, reason: "missing_env" };
+  if (!useSupabase)
+    return {
+      ok: false,
+      reason: _supabaseInitError || "client_not_initialized",
+    };
+  try {
+    const resp = await supabase
+      .from("students")
+      .select("id", { count: "exact", head: true });
+    // resp may be { count, data, error }
+    // If Supabase responds but returns an error, report safe message
+    // @ts-ignore
+    if (resp.error)
+      return {
+        ok: false,
+        reason: (resp.error && resp.error.message) || String(resp.error),
+      };
+    // @ts-ignore
+    return { ok: true, count: resp.count ?? null };
+  } catch (err) {
+    const e = err as Error;
+    return { ok: false, reason: `${e.name}: ${e.message}`.slice(0, 200) };
   }
 }
 
