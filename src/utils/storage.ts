@@ -18,11 +18,7 @@ import {
 
 import { ApiService } from "./api";
 
-export const ADMIN_CREDENTIALS = {
-  username: "abrash",
-  password: "123oPm78",
-  name: "Abrash (Educator Admin)",
-};
+// Admin credentials are validated server-side. Do NOT keep secrets in client code.
 
 const STORAGE_KEYS = {
   AUTH: "math_masters_auth_v3",
@@ -536,21 +532,8 @@ export const StorageService = {
     const trimmedUser = username.trim().toLowerCase();
     const trimmedPass = pass.trim();
 
-    // Check Admin Login (Abrash: 123oPm78)
-    if (
-      trimmedUser === ADMIN_CREDENTIALS.username.toLowerCase() &&
-      trimmedPass === ADMIN_CREDENTIALS.password
-    ) {
-      const authState: AuthState = {
-        isAuthenticated: true,
-        role: "admin",
-        currentStudentId: null,
-        username: ADMIN_CREDENTIALS.username,
-        name: ADMIN_CREDENTIALS.name,
-      };
-      this.setAuthState(authState);
-      return { success: true, role: "admin" };
-    }
+    // Admin authentication is performed server-side via ApiService.
+    // Student (local) authentication continues to work below.
 
     // Check Student Login
     const students = this.getStudents();
@@ -1766,7 +1749,7 @@ export const StorageService = {
     const data = {
       version: "3.0",
       exportedAt: new Date().toISOString(),
-      admin: ADMIN_CREDENTIALS.username,
+      admin: (this.getAuthState() && this.getAuthState().username) || "admin",
       students: this.getStudents(),
       attempts: this.getAllAttempts(),
       mistakes: this.getMistakes(),

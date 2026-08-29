@@ -36,16 +36,18 @@ async function safeFetchJson(input: RequestInfo, init?: RequestInit) {
     throw new Error(
       `HTTP ${res.status} ${res.statusText} - ${typeof body === "string" ? body : JSON.stringify(body)}`,
     );
-  }
-  const ct = res.headers.get("content-type") || "";
-  if (ct.includes("application/json")) return res.json();
-  return res.text();
-}
-
-export const ApiService = {
-  async login(username: string, password: string): Promise<LoginResponse> {
-    try {
-      const data = await safeFetchJson(`${API_BASE}/api/auth/login`, {
+    // In production, use same-origin serverless functions at `/api`.
+    // In development, allow overriding via `VITE_API_URL` or default to localhost backend.
+    const rawApiUrl = import.meta.env.VITE_API_URL || "";
+    const API_BASE = (() => {
+      if (import.meta.env.DEV) {
+        if (rawApiUrl && rawApiUrl !== "") return rawApiUrl.replace(/\/$/, "");
+        return "http://localhost:3000";
+      }
+      // Production -> same origin. Use relative paths like `/api/...`.
+      return "";
+    })();
+      const data = await safeFetchJson(`${API_BASE}/api/auth`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
@@ -80,7 +82,11 @@ export const ApiService = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(studentData),
       });
-      return data as { success: boolean; student?: StudentAccount; error?: string };
+      return data as {
+        success: boolean;
+        student?: StudentAccount;
+        error?: string;
+      };
     } catch (err: any) {
       console.error("API createStudent error:", err);
       return { success: false, error: err.message || "Network error" };
@@ -97,7 +103,11 @@ export const ApiService = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(update),
       });
-      return data as { success: boolean; student?: StudentAccount; error?: string };
+      return data as {
+        success: boolean;
+        student?: StudentAccount;
+        error?: string;
+      };
     } catch (err: any) {
       console.error("API updateStudent error:", err);
       return { success: false, error: err.message || "Network error" };
@@ -129,9 +139,7 @@ export const ApiService = {
     }
   },
 
-  async submitAttempt(
-    attempt: DodgingTestAttempt,
-  ): Promise<{
+  async submitAttempt(attempt: DodgingTestAttempt): Promise<{
     success: boolean;
     attempt?: DodgingTestAttempt;
     student?: StudentAccount;
@@ -142,7 +150,11 @@ export const ApiService = {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(attempt),
       });
-      return data as { success: boolean; attempt?: DodgingTestAttempt; student?: StudentAccount };
+      return data as {
+        success: boolean;
+        attempt?: DodgingTestAttempt;
+        student?: StudentAccount;
+      };
     } catch (err) {
       console.error("API submitAttempt error:", err);
       return { success: false };
@@ -205,9 +217,12 @@ export const ApiService = {
 
   async resetMasterDatabase(): Promise<boolean> {
     try {
-      const data: any = await safeFetchJson(`${API_BASE}/api/admin/reset-database`, {
-        method: "POST",
-      });
+      const data: any = await safeFetchJson(
+        `${API_BASE}/api/admin/reset-database`,
+        {
+          method: "POST",
+        },
+      );
       return !!data.success;
     } catch (err) {
       console.error("API resetMasterDatabase error:", err);
@@ -217,25 +232,52 @@ export const ApiService = {
 
   // Setup Real-Time Live Sync Listener via SSE
   subscribeToUpdates(onUpdate: (data: any) => void): () => void {
+    // Try SSE first; if unavailable or broken, fallback to polling `/api/last-updated`
+    let pollId: any = null;
     try {
-      const eventSource = new EventSource(`${API_BASE}/api/events`);
-      eventSource.onmessage = (event) => {
-        try {
-          const parsed = JSON.parse(event.data);
-          onUpdate(parsed);
-        } catch {
-          // ignore
-        }
-      };
-      eventSource.onerror = () => {
-        // EventSource will automatically retry connection
-      };
-      return () => {
-        eventSource.close();
-      };
+      if (typeof EventSource !== "undefined") {
+        const eventSource = new EventSource(`${API_BASE}/api/events`);
+        eventSource.onmessage = (event) => {
+          try {
+            const parsed = JSON.parse(event.data);
+            onUpdate(parsed);
+          } catch {
+            // ignore
+          }
+        };
+        eventSource.onerror = () => {
+          // Fallback to polling when SSE errors
+          tryFallbackToPolling();
+        };
+        return () => {
+          eventSource.close();
+          if (pollId) clearInterval(pollId);
+        };
+      }
     } catch (e) {
-      console.warn("SSE subscription not supported, falling back to polling.");
-      return () => {};
+      // continue to polling fallback
     }
+
+    // Polling fallback
+    function tryFallbackToPolling() {
+      if (pollId) return;
+      let last = 0;
+      pollId = setInterval(async () => {
+        try {
+          const data: any = await safeFetchJson(`${API_BASE}/api/last-updated`);
+          if (data && data.lastUpdated && data.lastUpdated !== last) {
+            last = data.lastUpdated;
+            onUpdate({ lastUpdated: last });
+          }
+        } catch (err) {
+          // ignore polling errors
+        }
+      }, 3000);
+    }
+
+    tryFallbackToPolling();
+    return () => {
+      if (pollId) clearInterval(pollId);
+    };
   },
 };

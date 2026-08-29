@@ -563,7 +563,10 @@ if (process.env.DATABASE_URL) {
     prismaEnabled = true;
     console.log("Prisma enabled: using PostgreSQL for persistence");
   } catch (e) {
-    console.warn("Prisma client not available; falling back to file DB:", e.message || e);
+    console.warn(
+      "Prisma client not available; falling back to file DB:",
+      e.message || e,
+    );
     prismaEnabled = false;
   }
 }
@@ -845,10 +848,14 @@ app.post("/api/students", (req, res) => {
     if (prismaEnabled && prisma) {
       try {
         await prisma.student.create({
-          data: { id: newStudent.id, username: newStudent.username, data: newStudent },
+          data: {
+            id: newStudent.id,
+            username: newStudent.username,
+            data: newStudent,
+          },
         });
       } catch (e) {
-        console.error('Prisma create student failed', e);
+        console.error("Prisma create student failed", e);
       }
     }
     db.students.push(newStudent);
@@ -905,7 +912,7 @@ app.put("/api/students/:id", (req, res) => {
           data: { username: updatedStudent.username, data: updatedStudent },
         });
       } catch (e) {
-        console.error('Prisma update student failed', e);
+        console.error("Prisma update student failed", e);
       }
     }
     await saveDatabase();
@@ -926,7 +933,7 @@ app.delete("/api/students/:id", (req, res) => {
         await prisma.mistake.deleteMany({ where: { studentId: id } });
         await prisma.student.delete({ where: { id } });
       } catch (e) {
-        console.error('Prisma delete student failed', e);
+        console.error("Prisma delete student failed", e);
       }
     }
     await saveDatabase();
@@ -976,80 +983,87 @@ app.post("/api/attempts", (req, res) => {
     db.attempts.push(attempt);
     if (prismaEnabled && prisma) {
       try {
-        await prisma.attempt.create({ data: { id: attempt.id, studentId: attempt.studentId, data: attempt, timestamp: new Date(attempt.timestamp) } });
+        await prisma.attempt.create({
+          data: {
+            id: attempt.id,
+            studentId: attempt.studentId,
+            data: attempt,
+            timestamp: new Date(attempt.timestamp),
+          },
+        });
       } catch (e) {
-        console.error('Prisma create attempt failed', e);
+        console.error("Prisma create attempt failed", e);
       }
     }
 
-  // Recalculate student statistics in real-time
-  if (studentIndex !== -1) {
-    const student = db.students[studentIndex];
-    const studentAttempts = db.attempts.filter(
-      (a) => a.studentId === student.id,
-    );
+    // Recalculate student statistics in real-time
+    if (studentIndex !== -1) {
+      const student = db.students[studentIndex];
+      const studentAttempts = db.attempts.filter(
+        (a) => a.studentId === student.id,
+      );
 
-    const totalTests = studentAttempts.length;
-    const totalAcc = studentAttempts.reduce(
-      (sum, a) => sum + (Number(a.accuracy) || 0),
-      0,
-    );
-    const avgAcc = totalTests > 0 ? Math.round(totalAcc / totalTests) : 0;
+      const totalTests = studentAttempts.length;
+      const totalAcc = studentAttempts.reduce(
+        (sum, a) => sum + (Number(a.accuracy) || 0),
+        0,
+      );
+      const avgAcc = totalTests > 0 ? Math.round(totalAcc / totalTests) : 0;
 
-    const totalSpeed = studentAttempts.reduce(
-      (sum, a) => sum + (Number(a.avgTimePerQuestionSec) || 0),
-      0,
-    );
-    const avgSpeed =
-      totalTests > 0 ? Number((totalSpeed / totalTests).toFixed(1)) : 0;
+      const totalSpeed = studentAttempts.reduce(
+        (sum, a) => sum + (Number(a.avgTimePerQuestionSec) || 0),
+        0,
+      );
+      const avgSpeed =
+        totalTests > 0 ? Number((totalSpeed / totalTests).toFixed(1)) : 0;
 
-    const totalXP =
-      (student.profile.totalXP || 0) + (Number(attempt.xpGained) || 50);
-    const newLevel = Math.max(1, Math.floor(Math.sqrt(totalXP / 100)) + 1);
+      const totalXP =
+        (student.profile.totalXP || 0) + (Number(attempt.xpGained) || 50);
+      const newLevel = Math.max(1, Math.floor(Math.sqrt(totalXP / 100)) + 1);
 
-    // Calculate streak
-    let streak = student.profile.streakDays || 0;
-    if (student.profile.lastActiveDate !== todayStr) {
-      const yesterday = new Date(now);
-      yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split("T")[0];
+      // Calculate streak
+      let streak = student.profile.streakDays || 0;
+      if (student.profile.lastActiveDate !== todayStr) {
+        const yesterday = new Date(now);
+        yesterday.setDate(yesterday.getDate() - 1);
+        const yesterdayStr = yesterday.toISOString().split("T")[0];
 
-      if (student.profile.lastActiveDate === yesterdayStr) {
-        streak += 1;
-      } else {
-        streak = 1;
+        if (student.profile.lastActiveDate === yesterdayStr) {
+          streak += 1;
+        } else {
+          streak = 1;
+        }
       }
+
+      const TITLES = [
+        "Math Initiate",
+        "Number Apprentice",
+        "Table Trainee",
+        "Math Explorer",
+        "Number Knight",
+        "Speed Solver",
+        "Calculation Champion",
+        "Algebra Ace",
+        "Matrix Magician",
+        "Grandmaster Wizard",
+      ];
+      const newTitle = TITLES[Math.min(newLevel - 1, TITLES.length - 1)];
+
+      db.students[studentIndex].profile = {
+        ...student.profile,
+        totalXP,
+        level: newLevel,
+        title: newTitle,
+        streakDays: streak,
+        lastActiveDate: todayStr,
+        testsCompleted: totalTests,
+        avgAccuracy: avgAcc,
+        avgSpeedSec: avgSpeed,
+      };
+
+      // Re-evaluate competitive record badges dynamically across all students
+      evaluateCompetitiveBadges(db.students, db.attempts);
     }
-
-    const TITLES = [
-      "Math Initiate",
-      "Number Apprentice",
-      "Table Trainee",
-      "Math Explorer",
-      "Number Knight",
-      "Speed Solver",
-      "Calculation Champion",
-      "Algebra Ace",
-      "Matrix Magician",
-      "Grandmaster Wizard",
-    ];
-    const newTitle = TITLES[Math.min(newLevel - 1, TITLES.length - 1)];
-
-    db.students[studentIndex].profile = {
-      ...student.profile,
-      totalXP,
-      level: newLevel,
-      title: newTitle,
-      streakDays: streak,
-      lastActiveDate: todayStr,
-      testsCompleted: totalTests,
-      avgAccuracy: avgAcc,
-      avgSpeedSec: avgSpeed,
-    };
-
-    // Re-evaluate competitive record badges dynamically across all students
-    evaluateCompetitiveBadges(db.students, db.attempts);
-  }
 
     await saveDatabase();
 
@@ -1068,13 +1082,21 @@ app.get("/api/attempts", (req, res) => {
     if (prismaEnabled && prisma) {
       try {
         if (studentId) {
-          const attempts = await prisma.attempt.findMany({ where: { studentId: String(studentId) } });
-          return res.json({ success: true, attempts: attempts.map((a: any) => a.data || a) });
+          const attempts = await prisma.attempt.findMany({
+            where: { studentId: String(studentId) },
+          });
+          return res.json({
+            success: true,
+            attempts: attempts.map((a: any) => a.data || a),
+          });
         }
         const attempts = await prisma.attempt.findMany();
-        return res.json({ success: true, attempts: attempts.map((a: any) => a.data || a) });
+        return res.json({
+          success: true,
+          attempts: attempts.map((a: any) => a.data || a),
+        });
       } catch (e) {
-        console.error('Prisma get attempts failed', e);
+        console.error("Prisma get attempts failed", e);
       }
     }
     if (studentId) {
@@ -1180,13 +1202,21 @@ app.get("/api/mistakes", (req, res) => {
     if (prismaEnabled && prisma) {
       try {
         if (studentId) {
-          const mistakes = await prisma.mistake.findMany({ where: { studentId: String(studentId) } });
-          return res.json({ success: true, mistakes: mistakes.map((m: any) => m.data || m) });
+          const mistakes = await prisma.mistake.findMany({
+            where: { studentId: String(studentId) },
+          });
+          return res.json({
+            success: true,
+            mistakes: mistakes.map((m: any) => m.data || m),
+          });
         }
         const mistakes = await prisma.mistake.findMany();
-        return res.json({ success: true, mistakes: mistakes.map((m: any) => m.data || m) });
+        return res.json({
+          success: true,
+          mistakes: mistakes.map((m: any) => m.data || m),
+        });
       } catch (e) {
-        console.error('Prisma get mistakes failed', e);
+        console.error("Prisma get mistakes failed", e);
       }
     }
     if (studentId) {
@@ -1209,13 +1239,23 @@ app.post("/api/mistakes", (req, res) => {
           db.mistakes[idx] = m;
           if (prismaEnabled && prisma) {
             try {
-              await prisma.mistake.update({ where: { id: m.id }, data: { data: m } });
+              await prisma.mistake.update({
+                where: { id: m.id },
+                data: { data: m },
+              });
             } catch (e) {
               // if not exist, create
               try {
-                await prisma.mistake.create({ data: { id: m.id, studentId: m.studentId || 'unknown', data: m, timestamp: new Date(m.timestamp || Date.now()) } });
+                await prisma.mistake.create({
+                  data: {
+                    id: m.id,
+                    studentId: m.studentId || "unknown",
+                    data: m,
+                    timestamp: new Date(m.timestamp || Date.now()),
+                  },
+                });
               } catch (err) {
-                console.error('Prisma create/update mistake failed', err);
+                console.error("Prisma create/update mistake failed", err);
               }
             }
           }
@@ -1223,9 +1263,16 @@ app.post("/api/mistakes", (req, res) => {
           db.mistakes.push(m);
           if (prismaEnabled && prisma) {
             try {
-              await prisma.mistake.create({ data: { id: m.id, studentId: m.studentId || 'unknown', data: m, timestamp: new Date(m.timestamp || Date.now()) } });
+              await prisma.mistake.create({
+                data: {
+                  id: m.id,
+                  studentId: m.studentId || "unknown",
+                  data: m,
+                  timestamp: new Date(m.timestamp || Date.now()),
+                },
+              });
             } catch (err) {
-              console.error('Prisma create mistake failed', err);
+              console.error("Prisma create mistake failed", err);
             }
           }
         }
@@ -1257,16 +1304,34 @@ app.post("/api/admin/reset-database", (req, res) => {
         await prisma.attempt.deleteMany();
         await prisma.mistake.deleteMany();
         await prisma.student.deleteMany();
-        await prisma.admin.upsert({ where: { id: 1 }, update: { username: ADMIN_USERNAME, password: ADMIN_PASSWORD, name: ADMIN_NAME }, create: { id: 1, username: ADMIN_USERNAME, password: ADMIN_PASSWORD, name: ADMIN_NAME } });
+        await prisma.admin.upsert({
+          where: { id: 1 },
+          update: {
+            username: ADMIN_USERNAME,
+            password: ADMIN_PASSWORD,
+            name: ADMIN_NAME,
+          },
+          create: {
+            id: 1,
+            username: ADMIN_USERNAME,
+            password: ADMIN_PASSWORD,
+            name: ADMIN_NAME,
+          },
+        });
         for (const s of INITIAL_STUDENTS) {
-          await prisma.student.create({ data: { id: s.id, username: s.username, data: s } });
+          await prisma.student.create({
+            data: { id: s.id, username: s.username, data: s },
+          });
         }
       } catch (e) {
-        console.error('Prisma reset database failed', e);
+        console.error("Prisma reset database failed", e);
       }
     }
     await saveDatabase();
-    res.json({ success: true, message: "Database reset to initial master seed." });
+    res.json({
+      success: true,
+      message: "Database reset to initial master seed.",
+    });
   })();
 });
 
@@ -1291,11 +1356,18 @@ async function startServer() {
     });
   }
 
-  app.listen(PORT, "0.0.0.0", () => {
-    console.log(
-      `⚡ Math Masters full-stack server running on http://0.0.0.0:${PORT}`,
-    );
-  });
+  // Only start a standalone server in local/dev environments. When deployed to
+  // Vercel (serverless) we must NOT call app.listen(). Vercel runs API routes
+  // as serverless functions instead.
+  if (!process.env.VERCEL) {
+    app.listen(PORT, "0.0.0.0", () => {
+      console.log(
+        `⚡ Math Masters full-stack server running on http://0.0.0.0:${PORT}`,
+      );
+    });
+  } else {
+    console.log("Running in Vercel environment: skipping app.listen()");
+  }
 }
 
 startServer();
