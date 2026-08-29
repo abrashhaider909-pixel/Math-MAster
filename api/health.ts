@@ -17,12 +17,12 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
       process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
 
     const supDiag = getSupabaseInitDiagnostic();
-    // perform an actual lightweight Supabase query to validate connectivity
-    let supTest: { ok: boolean; reason?: string; count?: number } | null = null;
+    // perform an actual lightweight Supabase REST fetch diagnostic to validate connectivity
+    let supTest: any = null;
     if (supDiag.hasSupabaseEnv) {
       supTest = await testSupabaseConnection().catch((e) => ({
         ok: false,
-        reason: (e as Error).message,
+        result: { errorMessage: (e as Error).message },
       }));
     }
 
@@ -34,7 +34,7 @@ export default async function handler(req: VercelRequest, res: VercelResponse) {
         isProduction,
         hasSupabaseEnv: supDiag.hasSupabaseEnv,
         supabaseInitOk: supDiag.supabaseInitOk,
-        supabaseError: supDiag.supabaseInitError || supTest.reason || "unknown",
+        supabaseFetch: supTest.result || null,
       });
     }
 

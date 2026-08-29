@@ -101,23 +101,82 @@ export async function testSupabaseConnection() {
       ok: false,
       reason: _supabaseInitError || "client_not_initialized",
     };
+  // Prefer a direct REST fetch diagnostic against the Supabase REST endpoint
+  const rawUrl = process.env.SUPABASE_URL || "";
+  let hostname: string | null = null;
   try {
-    const resp = await supabase
-      .from("students")
-      .select("id", { count: "exact", head: true });
-    // resp may be { count, data, error }
-    // If Supabase responds but returns an error, report safe message
-    // @ts-ignore
-    if (resp.error)
-      return {
-        ok: false,
-        reason: (resp.error && resp.error.message) || String(resp.error),
-      };
-    // @ts-ignore
-    return { ok: true, count: resp.count ?? null };
+    hostname = new URL(rawUrl).hostname;
+  } catch {
+    hostname = null;
+  }
+  const restUrl =
+    rawUrl.replace(/\/$/, "") + "/rest/v1/students?select=id&limit=1";
+  const key =
+    process.env.SUPABASE_SERVICE_KEY || process.env.SUPABASE_KEY || "";
+  const safeResult: any = { urlValid: !!rawUrl, hostname };
+  try {
+    const controller =
+      typeof AbortController !== "undefined" ? new AbortController() : null;
+    const timeout = controller
+      ? setTimeout(() => controller.abort(), 8000)
+      : null;
+    const res = await fetch(restUrl, {
+      method: "GET",
+      headers: {
+        Authorization: `Bearer ${key}`,
+        apikey: key,
+        Accept: "application/json",
+      },
+      signal: controller ? controller.signal : undefined,
+    });
+    if (timeout) clearTimeout(timeout);
+    safeResult.fetchOk = true;
+    safeResult.httpStatus = res.status;
+    safeResult.statusText = res.statusText;
+    return { ok: true, result: safeResult };
   } catch (err) {
-    const e = err as Error;
-    return { ok: false, reason: `${e.name}: ${e.message}`.slice(0, 200) };
+    if (typeof err === "object" && err !== null) {
+      const e = err as any;
+      // Extract recursive causes safely
+      function extractCause(x: any, depth = 0): any {
+        if (!x || depth > 6) return null;
+        const out: any = {};
+        if (x.name) out.name = String(x.name);
+        if (x.code) out.code = String(x.code);
+        if (x.errno) out.errno = String(x.errno);
+        if (x.syscall) out.syscall = String(x.syscall);
+        if (x.hostname) out.hostname = String(x.hostname);
+        if (x.message) out.message = String(x.message).slice(0, 400);
+        if (x.cause) out.cause = extractCause(x.cause, depth + 1);
+        return Object.keys(out).length ? out : null;
+      }
+      const cause = extractCause(e) || {
+        name: e.name || "Error",
+        message: String(e.message || e),
+      };
+      safeResult.fetchOk = false;
+      safeResult.httpStatus = null;
+      safeResult.errorName = cause.name || "Error";
+      safeResult.errorMessage = (cause.message || String(e)).slice(0, 400);
+      safeResult.cause = cause.cause || null;
+      // eslint-disable-next-line no-console
+      console.error("[api/_db] supabase fetch diagnostic failed", {
+        hostname,
+        operation: "rest:students:select",
+        name: safeResult.errorName,
+        message: safeResult.errorMessage,
+      });
+      return { ok: false, result: safeResult };
+    }
+    return {
+      ok: false,
+      result: {
+        fetchOk: false,
+        httpStatus: null,
+        errorName: String(err),
+        errorMessage: String(err),
+      },
+    };
   }
 }
 
@@ -201,7 +260,9 @@ export async function createStudent(student: AnyObject) {
       const op = "insert:students";
       const { data, error } = await supabase
         .from("students")
-        .insert([{ id: student.id, username: student.username, data: student }]);
+        .insert([
+          { id: student.id, username: student.username, data: student },
+        ]);
       if (error) {
         const host = (() => {
           try {
@@ -271,7 +332,10 @@ export async function deleteStudent(id: string) {
   if (useSupabase) {
     try {
       const op = "delete:students";
-      const { data, error } = await supabase.from("students").delete().eq("id", id);
+      const { data, error } = await supabase
+        .from("students")
+        .delete()
+        .eq("id", id);
       if (error) {
         const host = (() => {
           try {
