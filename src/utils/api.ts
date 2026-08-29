@@ -13,17 +13,44 @@ export interface LoginResponse {
   user?: { username: string; name: string };
   error?: string;
 }
-const API_BASE = (import.meta.env.VITE_API_BASE || "").replace(/\/$/, "");
+// Use explicit env var VITE_API_URL. In dev, default to localhost backend.
+const rawApiUrl = import.meta.env.VITE_API_URL || "";
+const API_BASE = ((): string => {
+  if (rawApiUrl && rawApiUrl !== "") return rawApiUrl.replace(/\/$/, "");
+  // If running locally in dev mode, point to localhost:3000 or 5000 depending on env
+  if (import.meta.env.DEV) return "http://localhost:3000";
+  // Fallback to empty string to use same-origin (not recommended for production)
+  return "";
+})();
+
+async function safeFetchJson(input: RequestInfo, init?: RequestInit) {
+  const res = await fetch(input, init);
+  if (!res.ok) {
+    const text = await res.text().catch(() => "");
+    let body: any = undefined;
+    try {
+      body = JSON.parse(text);
+    } catch {
+      body = text;
+    }
+    throw new Error(
+      `HTTP ${res.status} ${res.statusText} - ${typeof body === "string" ? body : JSON.stringify(body)}`,
+    );
+  }
+  const ct = res.headers.get("content-type") || "";
+  if (ct.includes("application/json")) return res.json();
+  return res.text();
+}
 
 export const ApiService = {
   async login(username: string, password: string): Promise<LoginResponse> {
     try {
-      const res = await fetch(`${API_BASE}/api/auth/login`, {
+      const data = await safeFetchJson(`${API_BASE}/api/auth/login`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ username, password }),
       });
-      return await res.json();
+      return data as LoginResponse;
     } catch (err: any) {
       console.error("API login error:", err);
       return {
@@ -36,8 +63,7 @@ export const ApiService = {
 
   async getStudents(): Promise<StudentAccount[]> {
     try {
-      const res = await fetch(`${API_BASE}/api/students`);
-      const data = await res.json();
+      const data: any = await safeFetchJson(`${API_BASE}/api/students`);
       return data.students || [];
     } catch (err) {
       console.error("API getStudents error:", err);
@@ -49,12 +75,12 @@ export const ApiService = {
     studentData: Partial<StudentAccount>,
   ): Promise<{ success: boolean; student?: StudentAccount; error?: string }> {
     try {
-      const res = await fetch(`${API_BASE}/api/students`, {
+      const data = await safeFetchJson(`${API_BASE}/api/students`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(studentData),
       });
-      return await res.json();
+      return data as { success: boolean; student?: StudentAccount; error?: string };
     } catch (err: any) {
       console.error("API createStudent error:", err);
       return { success: false, error: err.message || "Network error" };
@@ -66,12 +92,12 @@ export const ApiService = {
     update: Partial<StudentAccount>,
   ): Promise<{ success: boolean; student?: StudentAccount; error?: string }> {
     try {
-      const res = await fetch(`${API_BASE}/api/students/${id}`, {
+      const data = await safeFetchJson(`${API_BASE}/api/students/${id}`, {
         method: "PUT",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(update),
       });
-      return await res.json();
+      return data as { success: boolean; student?: StudentAccount; error?: string };
     } catch (err: any) {
       console.error("API updateStudent error:", err);
       return { success: false, error: err.message || "Network error" };
@@ -80,10 +106,9 @@ export const ApiService = {
 
   async deleteStudent(id: string): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/api/students/${id}`, {
+      const data = await safeFetchJson(`${API_BASE}/api/students/${id}`, {
         method: "DELETE",
       });
-      const data = await res.json();
       return !!data.success;
     } catch (err) {
       console.error("API deleteStudent error:", err);
@@ -93,11 +118,10 @@ export const ApiService = {
 
   async resetStudentDailyTest(studentId: string): Promise<boolean> {
     try {
-      const res = await fetch(
+      const data = await safeFetchJson(
         `${API_BASE}/api/students/${studentId}/reset-daily`,
         { method: "POST" },
       );
-      const data = await res.json();
       return !!data.success;
     } catch (err) {
       console.error("API resetStudentDailyTest error:", err);
@@ -113,12 +137,12 @@ export const ApiService = {
     student?: StudentAccount;
   }> {
     try {
-      const res = await fetch(`${API_BASE}/api/attempts`, {
+      const data = await safeFetchJson(`${API_BASE}/api/attempts`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify(attempt),
       });
-      return await res.json();
+      return data as { success: boolean; attempt?: DodgingTestAttempt; student?: StudentAccount };
     } catch (err) {
       console.error("API submitAttempt error:", err);
       return { success: false };
@@ -130,8 +154,7 @@ export const ApiService = {
       const url = studentId
         ? `${API_BASE}/api/attempts?studentId=${encodeURIComponent(studentId)}`
         : `${API_BASE}/api/attempts`;
-      const res = await fetch(url);
-      const data = await res.json();
+      const data: any = await safeFetchJson(url);
       return data.attempts || [];
     } catch (err) {
       console.error("API getAttempts error:", err);
@@ -145,8 +168,7 @@ export const ApiService = {
         classCode && classCode !== "all"
           ? `${API_BASE}/api/leaderboard?classCode=${encodeURIComponent(classCode)}`
           : `${API_BASE}/api/leaderboard`;
-      const res = await fetch(url);
-      const data = await res.json();
+      const data: any = await safeFetchJson(url);
       return data.leaderboard || [];
     } catch (err) {
       console.error("API getLeaderboard error:", err);
@@ -159,8 +181,7 @@ export const ApiService = {
       const url = studentId
         ? `${API_BASE}/api/mistakes?studentId=${encodeURIComponent(studentId)}`
         : `${API_BASE}/api/mistakes`;
-      const res = await fetch(url);
-      const data = await res.json();
+      const data: any = await safeFetchJson(url);
       return data.mistakes || [];
     } catch (err) {
       console.error("API getMistakes error:", err);
@@ -170,12 +191,11 @@ export const ApiService = {
 
   async saveMistakes(mistakes: MistakeRecord[]): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/api/mistakes`, {
+      const data: any = await safeFetchJson(`${API_BASE}/api/mistakes`, {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ mistakes }),
       });
-      const data = await res.json();
       return !!data.success;
     } catch (err) {
       console.error("API saveMistakes error:", err);
@@ -185,10 +205,9 @@ export const ApiService = {
 
   async resetMasterDatabase(): Promise<boolean> {
     try {
-      const res = await fetch(`${API_BASE}/api/admin/reset-database`, {
+      const data: any = await safeFetchJson(`${API_BASE}/api/admin/reset-database`, {
         method: "POST",
       });
-      const data = await res.json();
       return !!data.success;
     } catch (err) {
       console.error("API resetMasterDatabase error:", err);

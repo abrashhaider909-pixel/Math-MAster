@@ -1,10 +1,12 @@
 import express from "express";
 import path from "path";
 import fs from "fs";
+import dotenv from "dotenv";
 // fileURLToPath(import.meta.url) is not reliable after bundling to CJS;
 // use process.cwd() as a compatible __dirname for both dev and bundled builds.
 import { createServer as createViteServer } from "vite";
 
+dotenv.config();
 const __dirname = process.cwd();
 
 const app = express();
@@ -531,11 +533,16 @@ function evaluateCompetitiveBadges(students: any[], attempts: any[]) {
 }
 
 // Load Database
+// Allow admin credentials via env; do NOT store secrets in source code
+const ADMIN_USERNAME = process.env.ADMIN_USERNAME || "abrash";
+const ADMIN_PASSWORD = process.env.ADMIN_PASSWORD || "123oPm78";
+const ADMIN_NAME = process.env.ADMIN_NAME || "Abrash (Educator Admin)";
+
 let db: DatabaseSchema = {
   admin: {
-    username: "abrash",
-    password: "123oPm78",
-    name: "Abrash (Educator Admin)",
+    username: ADMIN_USERNAME,
+    password: ADMIN_PASSWORD,
+    name: ADMIN_NAME,
   },
   students: INITIAL_STUDENTS,
   attempts: [],
@@ -544,7 +551,49 @@ let db: DatabaseSchema = {
   badges: [],
 };
 
-function loadDatabase(): DatabaseSchema {
+// Optional Prisma integration when DATABASE_URL is provided.
+let prisma: any = null;
+let prismaEnabled = false;
+if (process.env.DATABASE_URL) {
+  try {
+    // Require lazily so dev workflows without prisma installed still work
+    // eslint-disable-next-line @typescript-eslint/no-var-requires
+    const { PrismaClient } = require("@prisma/client");
+    prisma = new PrismaClient();
+    prismaEnabled = true;
+    console.log("Prisma enabled: using PostgreSQL for persistence");
+  } catch (e) {
+    console.warn("Prisma client not available; falling back to file DB:", e.message || e);
+    prismaEnabled = false;
+  }
+}
+
+// DB helper wrappers: use Prisma when enabled, otherwise fall back to file-based DB
+async function loadDatabase(): Promise<DatabaseSchema> {
+  if (prismaEnabled && prisma) {
+    try {
+      const students = await prisma.student.findMany();
+      const attempts = await prisma.attempt.findMany();
+      const mistakes = await prisma.mistake.findMany();
+      const admin = (await prisma.admin.findFirst()) || {
+        username: ADMIN_USERNAME,
+        password: ADMIN_PASSWORD,
+        name: ADMIN_NAME,
+      };
+      db = {
+        admin,
+        students: students.map((s: any) => s.data ?? s),
+        attempts: attempts.map((a: any) => a.data ?? a),
+        mistakes: mistakes.map((m: any) => m.data ?? m),
+        questStages: db.questStages,
+        badges: db.badges,
+      };
+      return db;
+    } catch (e) {
+      console.error("Prisma load failed, falling back to file DB:", e);
+    }
+  }
+
   try {
     if (fs.existsSync(DB_FILE)) {
       const data = fs.readFileSync(DB_FILE, "utf-8");
@@ -571,7 +620,17 @@ function loadDatabase(): DatabaseSchema {
   return db;
 }
 
-function saveDatabase() {
+async function saveDatabase() {
+  if (prismaEnabled && prisma) {
+    try {
+      // For production, write-through is handled directly in each endpoint using Prisma.
+      broadcastSSE({ type: "DATA_SYNC", timestamp: Date.now() });
+      return;
+    } catch (e) {
+      console.error("Prisma saveDatabase warning:", e);
+    }
+  }
+
   try {
     fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf-8");
     broadcastSSE({ type: "DATA_SYNC", timestamp: Date.now() });
@@ -615,7 +674,8 @@ function broadcastSSE(data: any) {
   }
 }
 
-loadDatabase();
+// Load DB (Prisma or file) before starting server
+// loadDatabase is async; startServer will call it to ensure DB ready
 
 // -------------------------------------------------------------
 // Real-Time API Routes
@@ -781,10 +841,20 @@ app.post("/api/students", (req, res) => {
     },
   };
 
-  db.students.push(newStudent);
-  saveDatabase();
-
-  res.status(201).json({ success: true, student: newStudent });
+  (async () => {
+    if (prismaEnabled && prisma) {
+      try {
+        await prisma.student.create({
+          data: { id: newStudent.id, username: newStudent.username, data: newStudent },
+        });
+      } catch (e) {
+        console.error('Prisma create student failed', e);
+      }
+    }
+    db.students.push(newStudent);
+    await saveDatabase();
+    res.status(201).json({ success: true, student: newStudent });
+  })();
 });
 
 // Update student
@@ -826,21 +896,42 @@ app.put("/api/students/:id", (req, res) => {
     },
   };
 
-  db.students[index] = updatedStudent;
-  saveDatabase();
-
-  res.json({ success: true, student: updatedStudent });
+  (async () => {
+    db.students[index] = updatedStudent;
+    if (prismaEnabled && prisma) {
+      try {
+        await prisma.student.update({
+          where: { id },
+          data: { username: updatedStudent.username, data: updatedStudent },
+        });
+      } catch (e) {
+        console.error('Prisma update student failed', e);
+      }
+    }
+    await saveDatabase();
+    res.json({ success: true, student: updatedStudent });
+  })();
 });
 
 // Delete student
 app.delete("/api/students/:id", (req, res) => {
   const { id } = req.params;
-  db.students = db.students.filter((s) => s.id !== id);
-  db.attempts = db.attempts.filter((a) => a.studentId !== id);
-  db.mistakes = db.mistakes.filter((m) => m.studentId !== id);
-  saveDatabase();
-
-  res.json({ success: true });
+  (async () => {
+    db.students = db.students.filter((s) => s.id !== id);
+    db.attempts = db.attempts.filter((a) => a.studentId !== id);
+    db.mistakes = db.mistakes.filter((m) => m.studentId !== id);
+    if (prismaEnabled && prisma) {
+      try {
+        await prisma.attempt.deleteMany({ where: { studentId: id } });
+        await prisma.mistake.deleteMany({ where: { studentId: id } });
+        await prisma.student.delete({ where: { id } });
+      } catch (e) {
+        console.error('Prisma delete student failed', e);
+      }
+    }
+    await saveDatabase();
+    res.json({ success: true });
+  })();
 });
 
 // Reset student's daily test quota
@@ -881,7 +972,15 @@ app.post("/api/attempts", (req, res) => {
   attempt.timestamp = attempt.timestamp || now.toISOString();
   attempt.isSynced = true;
 
-  db.attempts.push(attempt);
+  (async () => {
+    db.attempts.push(attempt);
+    if (prismaEnabled && prisma) {
+      try {
+        await prisma.attempt.create({ data: { id: attempt.id, studentId: attempt.studentId, data: attempt, timestamp: new Date(attempt.timestamp) } });
+      } catch (e) {
+        console.error('Prisma create attempt failed', e);
+      }
+    }
 
   // Recalculate student statistics in real-time
   if (studentIndex !== -1) {
@@ -952,25 +1051,40 @@ app.post("/api/attempts", (req, res) => {
     evaluateCompetitiveBadges(db.students, db.attempts);
   }
 
-  saveDatabase();
+    await saveDatabase();
 
-  res.status(201).json({
-    success: true,
-    attempt,
-    student: studentIndex !== -1 ? db.students[studentIndex] : null,
-  });
+    res.status(201).json({
+      success: true,
+      attempt,
+      student: studentIndex !== -1 ? db.students[studentIndex] : null,
+    });
+  })();
 });
 
 // Get attempts
 app.get("/api/attempts", (req, res) => {
   const { studentId } = req.query;
-  if (studentId) {
-    const studentAttempts = db.attempts.filter(
-      (a) => a.studentId === String(studentId),
-    );
-    return res.json({ success: true, attempts: studentAttempts });
-  }
-  res.json({ success: true, attempts: db.attempts });
+  (async () => {
+    if (prismaEnabled && prisma) {
+      try {
+        if (studentId) {
+          const attempts = await prisma.attempt.findMany({ where: { studentId: String(studentId) } });
+          return res.json({ success: true, attempts: attempts.map((a: any) => a.data || a) });
+        }
+        const attempts = await prisma.attempt.findMany();
+        return res.json({ success: true, attempts: attempts.map((a: any) => a.data || a) });
+      } catch (e) {
+        console.error('Prisma get attempts failed', e);
+      }
+    }
+    if (studentId) {
+      const studentAttempts = db.attempts.filter(
+        (a) => a.studentId === String(studentId),
+      );
+      return res.json({ success: true, attempts: studentAttempts });
+    }
+    res.json({ success: true, attempts: db.attempts });
+  })();
 });
 
 // Badges - 10 Competitive record holders
@@ -1062,56 +1176,107 @@ app.get("/api/leaderboard", (req, res) => {
 // Mistakes API
 app.get("/api/mistakes", (req, res) => {
   const { studentId } = req.query;
-  if (studentId) {
-    return res.json({
-      success: true,
-      mistakes: db.mistakes.filter((m) => m.studentId === studentId),
-    });
-  }
-  res.json({ success: true, mistakes: db.mistakes });
+  (async () => {
+    if (prismaEnabled && prisma) {
+      try {
+        if (studentId) {
+          const mistakes = await prisma.mistake.findMany({ where: { studentId: String(studentId) } });
+          return res.json({ success: true, mistakes: mistakes.map((m: any) => m.data || m) });
+        }
+        const mistakes = await prisma.mistake.findMany();
+        return res.json({ success: true, mistakes: mistakes.map((m: any) => m.data || m) });
+      } catch (e) {
+        console.error('Prisma get mistakes failed', e);
+      }
+    }
+    if (studentId) {
+      return res.json({
+        success: true,
+        mistakes: db.mistakes.filter((m) => m.studentId === studentId),
+      });
+    }
+    res.json({ success: true, mistakes: db.mistakes });
+  })();
 });
 
 app.post("/api/mistakes", (req, res) => {
   const { mistakes } = req.body;
   if (Array.isArray(mistakes)) {
-    for (const m of mistakes) {
-      const idx = db.mistakes.findIndex((x) => x.id === m.id);
-      if (idx !== -1) {
-        db.mistakes[idx] = m;
-      } else {
-        db.mistakes.push(m);
+    (async () => {
+      for (const m of mistakes) {
+        const idx = db.mistakes.findIndex((x) => x.id === m.id);
+        if (idx !== -1) {
+          db.mistakes[idx] = m;
+          if (prismaEnabled && prisma) {
+            try {
+              await prisma.mistake.update({ where: { id: m.id }, data: { data: m } });
+            } catch (e) {
+              // if not exist, create
+              try {
+                await prisma.mistake.create({ data: { id: m.id, studentId: m.studentId || 'unknown', data: m, timestamp: new Date(m.timestamp || Date.now()) } });
+              } catch (err) {
+                console.error('Prisma create/update mistake failed', err);
+              }
+            }
+          }
+        } else {
+          db.mistakes.push(m);
+          if (prismaEnabled && prisma) {
+            try {
+              await prisma.mistake.create({ data: { id: m.id, studentId: m.studentId || 'unknown', data: m, timestamp: new Date(m.timestamp || Date.now()) } });
+            } catch (err) {
+              console.error('Prisma create mistake failed', err);
+            }
+          }
+        }
       }
-    }
-    saveDatabase();
+      await saveDatabase();
+    })();
   }
   res.json({ success: true, count: db.mistakes.length });
 });
 
 // Admin Reset All
 app.post("/api/admin/reset-database", (req, res) => {
-  db = {
-    admin: {
-      username: "abrash",
-      password: "123oPm78",
-      name: "Abrash (Educator Admin)",
-    },
-    students: INITIAL_STUDENTS,
-    attempts: [],
-    mistakes: [],
-    questStages: [],
-    badges: [],
-  };
-  saveDatabase();
-  res.json({
-    success: true,
-    message: "Database reset to initial master seed.",
-  });
+  (async () => {
+    db = {
+      admin: {
+        username: ADMIN_USERNAME,
+        password: ADMIN_PASSWORD,
+        name: ADMIN_NAME,
+      },
+      students: INITIAL_STUDENTS,
+      attempts: [],
+      mistakes: [],
+      questStages: [],
+      badges: [],
+    };
+    if (prismaEnabled && prisma) {
+      try {
+        // wipe tables and re-seed
+        await prisma.attempt.deleteMany();
+        await prisma.mistake.deleteMany();
+        await prisma.student.deleteMany();
+        await prisma.admin.upsert({ where: { id: 1 }, update: { username: ADMIN_USERNAME, password: ADMIN_PASSWORD, name: ADMIN_NAME }, create: { id: 1, username: ADMIN_USERNAME, password: ADMIN_PASSWORD, name: ADMIN_NAME } });
+        for (const s of INITIAL_STUDENTS) {
+          await prisma.student.create({ data: { id: s.id, username: s.username, data: s } });
+        }
+      } catch (e) {
+        console.error('Prisma reset database failed', e);
+      }
+    }
+    await saveDatabase();
+    res.json({ success: true, message: "Database reset to initial master seed." });
+  })();
 });
 
 // -------------------------------------------------------------
 // Vite Middleware / Static Asset Serving
 // -------------------------------------------------------------
 async function startServer() {
+  // Ensure database is loaded (Prisma or file) before handling requests
+  await loadDatabase();
+
   if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },

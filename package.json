@@ -7,10 +7,14 @@
     "dev": "tsx server.ts",
     "build": "vite build && esbuild server.ts --bundle --platform=node --format=cjs --packages=external --sourcemap --outfile=dist/server.cjs",
     "start": "node dist/server.cjs",
-    "clean": "rm -rf dist server.js",
-    "lint": "tsc --noEmit"
+    "clean": "rimraf dist server.js",
+    "lint": "tsc --noEmit",
+    "prisma:generate": "prisma generate",
+    "prisma:migrate:dev": "prisma migrate dev --name init --preview-feature",
+    "prisma:seed": "ts-node prisma/seed.ts"
   },
   "dependencies": {
+    "@prisma/client": "4.19.0",
     "@google/genai": "^2.4.0",
     "@tailwindcss/vite": "^4.1.14",
     "@types/canvas-confetti": "^1.9.0",
@@ -25,6 +29,7 @@
     "vite": "^6.2.3"
   },
   "devDependencies": {
+    "prisma": "4.19.0",
     "@types/node": "^22.14.0",
     "autoprefixer": "^10.4.21",
     "esbuild": "^0.25.0",
