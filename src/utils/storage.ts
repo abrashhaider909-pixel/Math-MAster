@@ -14,199 +14,206 @@ import {
   AuthState,
   DayStreakItem,
   StudentStreakData,
-} from '../types';
+} from "../types";
 
-import { ApiService } from './api';
+import { ApiService } from "./api";
 
 export const ADMIN_CREDENTIALS = {
-  username: 'abrash',
-  password: '123oPm78',
-  name: 'Abrash (Educator Admin)',
+  username: "abrash",
+  password: "123oPm78",
+  name: "Abrash (Educator Admin)",
 };
 
 const STORAGE_KEYS = {
-  AUTH: 'math_masters_auth_v3',
-  STUDENTS: 'math_masters_students_v3',
-  ATTEMPTS: 'math_masters_attempts_v3',
-  OFFLINE_QUEUE: 'math_masters_offline_queue_v3',
-  PROFILE_LEGACY: 'math_masters_profile_v2',
-  STATS_LEGACY: 'math_masters_stats_v2',
-  MISTAKES: 'math_masters_mistakes_v3',
-  QUEST_STAGES: 'math_masters_quest_stages_v2',
-  BADGES: 'math_masters_badges_v3',
+  AUTH: "math_masters_auth_v3",
+  STUDENTS: "math_masters_students_v3",
+  ATTEMPTS: "math_masters_attempts_v3",
+  OFFLINE_QUEUE: "math_masters_offline_queue_v3",
+  PROFILE_LEGACY: "math_masters_profile_v2",
+  STATS_LEGACY: "math_masters_stats_v2",
+  MISTAKES: "math_masters_mistakes_v3",
+  QUEST_STAGES: "math_masters_quest_stages_v2",
+  BADGES: "math_masters_badges_v3",
 };
 
 export const INITIAL_BADGES: AchievementBadge[] = [
   {
-    id: 'cheetah_speed',
-    title: 'Cheetah Sprint',
-    description: 'Fastest average time per question in a completed test (min 80% accuracy)',
-    iconName: 'Zap',
-    emoji: '🐆',
-    category: 'speed',
-    requirementDescription: 'Lowest seconds / question record',
+    id: "cheetah_speed",
+    title: "Cheetah Sprint",
+    description:
+      "Fastest average time per question in a completed test (min 80% accuracy)",
+    iconName: "Zap",
+    emoji: "🐆",
+    category: "speed",
+    requirementDescription: "Lowest seconds / question record",
     unlocked: false,
   },
   {
-    id: 'deadshot_accuracy',
-    title: 'Deadshot Sniper',
-    description: 'Highest test accuracy record across official dodging tests',
-    iconName: 'Target',
-    emoji: '🎯',
-    category: 'accuracy',
-    requirementDescription: 'Highest accuracy % record',
+    id: "deadshot_accuracy",
+    title: "Deadshot Sniper",
+    description: "Highest test accuracy record across official dodging tests",
+    iconName: "Target",
+    emoji: "🎯",
+    category: "accuracy",
+    requirementDescription: "Highest accuracy % record",
     unlocked: false,
   },
   {
-    id: 'apex_score',
-    title: 'Apex Grand Champion',
-    description: 'Highest single dodging test score achieved in the class',
-    iconName: 'Crown',
-    emoji: '👑',
-    category: 'score',
-    requirementDescription: 'Highest single test score record',
+    id: "apex_score",
+    title: "Apex Grand Champion",
+    description: "Highest single dodging test score achieved in the class",
+    iconName: "Crown",
+    emoji: "👑",
+    category: "score",
+    requirementDescription: "Highest single test score record",
     unlocked: false,
   },
   {
-    id: 'lightning_reaction',
-    title: 'Lightning Reaction',
-    description: 'Sub-1.5s ultra-speed response record on 10+ questions test',
-    iconName: 'Flame',
-    emoji: '⚡',
-    category: 'speed',
-    requirementDescription: 'Fastest reaction speed record',
+    id: "lightning_reaction",
+    title: "Lightning Reaction",
+    description: "Sub-1.5s ultra-speed response record on 10+ questions test",
+    iconName: "Flame",
+    emoji: "⚡",
+    category: "speed",
+    requirementDescription: "Fastest reaction speed record",
     unlocked: false,
   },
   {
-    id: 'streak_overlord',
-    title: 'Streak Overlord',
-    description: 'Longest active daily practice streak in the classroom',
-    iconName: 'Flame',
-    emoji: '🔥',
-    category: 'streak',
-    requirementDescription: 'Highest active daily streak record',
+    id: "streak_overlord",
+    title: "Streak Overlord",
+    description: "Longest active daily practice streak in the classroom",
+    iconName: "Flame",
+    emoji: "🔥",
+    category: "streak",
+    requirementDescription: "Highest active daily streak record",
     unlocked: false,
   },
   {
-    id: 'xp_titan',
-    title: 'XP Titan',
-    description: 'Highest total XP accumulated in the classroom',
-    iconName: 'Sparkles',
-    emoji: '💎',
-    category: 'score',
-    requirementDescription: 'Highest total XP record',
+    id: "xp_titan",
+    title: "XP Titan",
+    description: "Highest total XP accumulated in the classroom",
+    iconName: "Sparkles",
+    emoji: "💎",
+    category: "score",
+    requirementDescription: "Highest total XP record",
     unlocked: false,
   },
   {
-    id: 'iron_wall',
-    title: 'Iron Wall Flawless',
-    description: 'Most 100% perfect (10/10) test clears without a single error',
-    iconName: 'Award',
-    emoji: '🛡️',
-    category: 'accuracy',
-    requirementDescription: 'Most flawless 100% tests record',
+    id: "iron_wall",
+    title: "Iron Wall Flawless",
+    description: "Most 100% perfect (10/10) test clears without a single error",
+    iconName: "Award",
+    emoji: "🛡️",
+    category: "accuracy",
+    requirementDescription: "Most flawless 100% tests record",
     unlocked: false,
   },
   {
-    id: 'dodging_warlord',
-    title: 'Dodging Warlord',
-    description: 'Most official dodging tests completed overall',
-    iconName: 'Trophy',
-    emoji: '⚔️',
-    category: 'dedication',
-    requirementDescription: 'Most tests completed record',
+    id: "dodging_warlord",
+    title: "Dodging Warlord",
+    description: "Most official dodging tests completed overall",
+    iconName: "Trophy",
+    emoji: "⚔️",
+    category: "dedication",
+    requirementDescription: "Most tests completed record",
     unlocked: false,
   },
   {
-    id: 'supersonic_prodigy',
-    title: 'Supersonic Prodigy',
-    description: 'Fastest total test completion time with 90%+ accuracy',
-    iconName: 'Award',
-    emoji: '🚀',
-    category: 'speed',
-    requirementDescription: 'Lowest total test duration record',
+    id: "supersonic_prodigy",
+    title: "Supersonic Prodigy",
+    description: "Fastest total test completion time with 90%+ accuracy",
+    iconName: "Award",
+    emoji: "🚀",
+    category: "speed",
+    requirementDescription: "Lowest total test duration record",
     unlocked: false,
   },
   {
-    id: 'the_centurion',
-    title: 'The Centurion',
-    description: 'Most total math questions answered correctly across all tests',
-    iconName: 'Award',
-    emoji: '🌟',
-    category: 'dedication',
-    requirementDescription: 'Most math problems solved record',
+    id: "the_centurion",
+    title: "The Centurion",
+    description:
+      "Most total math questions answered correctly across all tests",
+    iconName: "Award",
+    emoji: "🌟",
+    category: "dedication",
+    requirementDescription: "Most math problems solved record",
     unlocked: false,
   },
 ];
 
 export const INITIAL_QUEST_STAGES: QuestStage[] = [
   {
-    id: 'stage_1',
+    id: "stage_1",
     stageNumber: 1,
-    title: 'Tables 2 to 5 Sprint',
-    operation: 'multiplication',
-    difficulty: 'rookie',
-    description: 'Master elementary multiplication tables 2, 3, 4, and 5 with high speed.',
+    title: "Tables 2 to 5 Sprint",
+    operation: "multiplication",
+    difficulty: "rookie",
+    description:
+      "Master elementary multiplication tables 2, 3, 4, and 5 with high speed.",
     requiredXP: 0,
     targetQuestions: 8,
     starsEarned: 0,
     isUnlocked: true,
   },
   {
-    id: 'stage_2',
+    id: "stage_2",
     stageNumber: 2,
-    title: 'Tables 6 to 9 Core Matrix',
-    operation: 'multiplication',
-    difficulty: 'explorer',
-    description: 'Conquer the tricky 6×, 7×, 8×, and 9× dodging table problems.',
+    title: "Tables 6 to 9 Core Matrix",
+    operation: "multiplication",
+    difficulty: "explorer",
+    description:
+      "Conquer the tricky 6×, 7×, 8×, and 9× dodging table problems.",
     requiredXP: 60,
     targetQuestions: 10,
     starsEarned: 0,
     isUnlocked: false,
   },
   {
-    id: 'stage_3',
+    id: "stage_3",
     stageNumber: 3,
-    title: 'Missing Factor Detective',
-    operation: 'missing_factor',
-    difficulty: 'explorer',
-    description: 'Find the missing multiplier in fast-paced dodging equations (e.g. ? × 8 = 56).',
+    title: "Missing Factor Detective",
+    operation: "missing_factor",
+    difficulty: "explorer",
+    description:
+      "Find the missing multiplier in fast-paced dodging equations (e.g. ? × 8 = 56).",
     requiredXP: 150,
     targetQuestions: 10,
     starsEarned: 0,
     isUnlocked: false,
   },
   {
-    id: 'stage_4',
+    id: "stage_4",
     stageNumber: 4,
-    title: 'Inverse Division Vault',
-    operation: 'division',
-    difficulty: 'explorer',
-    description: 'Reverse dodging tables to find quotients in record time.',
+    title: "Inverse Division Vault",
+    operation: "division",
+    difficulty: "explorer",
+    description: "Reverse dodging tables to find quotients in record time.",
     requiredXP: 260,
     targetQuestions: 10,
     starsEarned: 0,
     isUnlocked: false,
   },
   {
-    id: 'stage_5',
+    id: "stage_5",
     stageNumber: 5,
-    title: 'Tables 11 to 15 Heavyweights',
-    operation: 'multiplication',
-    difficulty: 'champion',
-    description: 'Advanced multiplication tables 11 through 15 with rapid calculation.',
+    title: "Tables 11 to 15 Heavyweights",
+    operation: "multiplication",
+    difficulty: "champion",
+    description:
+      "Advanced multiplication tables 11 through 15 with rapid calculation.",
     requiredXP: 400,
     targetQuestions: 12,
     starsEarned: 0,
     isUnlocked: false,
   },
   {
-    id: 'stage_6',
+    id: "stage_6",
     stageNumber: 6,
-    title: 'Mixed Dodging Grand Prix (Boss Stage)',
-    operation: 'mixed',
-    difficulty: 'master',
-    description: 'The ultimate lightning dodging test mixing multiplication, division, and missing factors up to Table 20!',
+    title: "Mixed Dodging Grand Prix (Boss Stage)",
+    operation: "mixed",
+    difficulty: "master",
+    description:
+      "The ultimate lightning dodging test mixing multiplication, division, and missing factors up to Table 20!",
     requiredXP: 650,
     targetQuestions: 15,
     starsEarned: 0,
@@ -218,234 +225,240 @@ export const INITIAL_QUEST_STAGES: QuestStage[] = [
 // Pre-seeded students for immediate classroom demonstration
 const DEFAULT_STUDENTS: StudentAccount[] = [
   {
-    id: 'std_alex',
-    username: 'alex.m',
-    password: 'password123',
-    name: 'Alex Mercer',
-    avatar: '🧑‍🚀',
-    grade: 'explorer',
-    classCode: 'MATH-808',
-    createdAt: '2026-08-20T10:00:00.000Z',
+    id: "std_alex",
+    username: "alex.m",
+    password: "password123",
+    name: "Alex Mercer",
+    avatar: "🧑‍🚀",
+    grade: "explorer",
+    classCode: "MATH-808",
+    createdAt: "2026-08-20T10:00:00.000Z",
     assignedMinTable: 2,
     assignedMaxTable: 12,
     assignedTimePerQuestionSec: 10,
     assignedQuestionCount: 15,
-    assignedMode: 'multiplication',
+    assignedMode: "multiplication",
     profile: {
-      id: 'std_alex',
-      username: 'alex.m',
-      name: 'Alex Mercer',
-      avatar: '🧑‍🚀',
-      grade: 'explorer',
-      classCode: 'MATH-808',
+      id: "std_alex",
+      username: "alex.m",
+      name: "Alex Mercer",
+      avatar: "🧑‍🚀",
+      grade: "explorer",
+      classCode: "MATH-808",
       totalXP: 520,
       level: 4,
-      title: 'Arithmetic Knight',
+      title: "Arithmetic Knight",
       streakDays: 3,
-      lastActiveDate: new Date().toISOString().split('T')[0],
+      lastActiveDate: new Date().toISOString().split("T")[0],
       soundEnabled: true,
-      unlockedBadges: ['first_dodging', 'streak_5'],
+      unlockedBadges: ["first_dodging", "streak_5"],
       starsCollected: 6,
       assignedMinTable: 2,
       assignedMaxTable: 12,
       assignedTimePerQuestionSec: 10,
       assignedQuestionCount: 15,
-      assignedMode: 'multiplication',
+      assignedMode: "multiplication",
       testsCompleted: 4,
       avgAccuracy: 93,
       avgSpeedSec: 4.8,
     },
   },
   {
-    id: 'std_aria',
-    username: 'aria.c',
-    password: 'password123',
-    name: 'Aria Chen',
-    avatar: '🦊',
-    grade: 'champion',
-    classCode: 'MATH-808',
-    createdAt: '2026-08-20T10:00:00.000Z',
+    id: "std_aria",
+    username: "aria.c",
+    password: "password123",
+    name: "Aria Chen",
+    avatar: "🦊",
+    grade: "champion",
+    classCode: "MATH-808",
+    createdAt: "2026-08-20T10:00:00.000Z",
     assignedMinTable: 2,
     assignedMaxTable: 15,
     assignedTimePerQuestionSec: 7,
     assignedQuestionCount: 20,
-    assignedMode: 'mixed',
+    assignedMode: "mixed",
     profile: {
-      id: 'std_aria',
-      username: 'aria.c',
-      name: 'Aria Chen',
-      avatar: '🦊',
-      grade: 'champion',
-      classCode: 'MATH-808',
+      id: "std_aria",
+      username: "aria.c",
+      name: "Aria Chen",
+      avatar: "🦊",
+      grade: "champion",
+      classCode: "MATH-808",
       totalXP: 1450,
       level: 6,
-      title: 'Algebra Specialist',
+      title: "Algebra Specialist",
       streakDays: 5,
-      lastActiveDate: new Date().toISOString().split('T')[0],
+      lastActiveDate: new Date().toISOString().split("T")[0],
       soundEnabled: true,
-      unlockedBadges: ['first_dodging', 'streak_5', 'streak_15', 'table_master_7', 'flawless_round'],
+      unlockedBadges: [
+        "first_dodging",
+        "streak_5",
+        "streak_15",
+        "table_master_7",
+        "flawless_round",
+      ],
       starsCollected: 12,
       assignedMinTable: 2,
       assignedMaxTable: 15,
       assignedTimePerQuestionSec: 7,
       assignedQuestionCount: 20,
-      assignedMode: 'mixed',
+      assignedMode: "mixed",
       testsCompleted: 11,
       avgAccuracy: 97,
       avgSpeedSec: 3.2,
     },
   },
   {
-    id: 'std_marcus',
-    username: 'marcus.v',
-    password: 'password123',
-    name: 'Marcus Vance',
-    avatar: '🚀',
-    grade: 'master',
-    classCode: 'MATH-808',
-    createdAt: '2026-08-20T10:00:00.000Z',
+    id: "std_marcus",
+    username: "marcus.v",
+    password: "password123",
+    name: "Marcus Vance",
+    avatar: "🚀",
+    grade: "master",
+    classCode: "MATH-808",
+    createdAt: "2026-08-20T10:00:00.000Z",
     assignedMinTable: 2,
     assignedMaxTable: 20,
     assignedTimePerQuestionSec: 5,
     assignedQuestionCount: 20,
-    assignedMode: 'multiplication',
+    assignedMode: "multiplication",
     profile: {
-      id: 'std_marcus',
-      username: 'marcus.v',
-      name: 'Marcus Vance',
-      avatar: '🚀',
-      grade: 'master',
-      classCode: 'MATH-808',
+      id: "std_marcus",
+      username: "marcus.v",
+      name: "Marcus Vance",
+      avatar: "🚀",
+      grade: "master",
+      classCode: "MATH-808",
       totalXP: 1220,
       level: 5,
-      title: 'Fraction Wizard',
+      title: "Fraction Wizard",
       streakDays: 4,
-      lastActiveDate: new Date().toISOString().split('T')[0],
+      lastActiveDate: new Date().toISOString().split("T")[0],
       soundEnabled: true,
-      unlockedBadges: ['first_dodging', 'streak_5', 'speed_demon'],
+      unlockedBadges: ["first_dodging", "streak_5", "speed_demon"],
       starsCollected: 9,
       assignedMinTable: 2,
       assignedMaxTable: 20,
       assignedTimePerQuestionSec: 5,
       assignedQuestionCount: 20,
-      assignedMode: 'multiplication',
+      assignedMode: "multiplication",
       testsCompleted: 8,
       avgAccuracy: 94,
       avgSpeedSec: 2.8,
     },
   },
   {
-    id: 'std_sophia',
-    username: 'sophia.p',
-    password: 'password123',
-    name: 'Sophia Patel',
-    avatar: '🦉',
-    grade: 'champion',
-    classCode: 'MATH-808',
-    createdAt: '2026-08-20T10:00:00.000Z',
+    id: "std_sophia",
+    username: "sophia.p",
+    password: "password123",
+    name: "Sophia Patel",
+    avatar: "🦉",
+    grade: "champion",
+    classCode: "MATH-808",
+    createdAt: "2026-08-20T10:00:00.000Z",
     assignedMinTable: 2,
     assignedMaxTable: 12,
     assignedTimePerQuestionSec: 8,
     assignedQuestionCount: 15,
-    assignedMode: 'missing_factor',
+    assignedMode: "missing_factor",
     profile: {
-      id: 'std_sophia',
-      username: 'sophia.p',
-      name: 'Sophia Patel',
-      avatar: '🦉',
-      grade: 'champion',
-      classCode: 'MATH-808',
+      id: "std_sophia",
+      username: "sophia.p",
+      name: "Sophia Patel",
+      avatar: "🦉",
+      grade: "champion",
+      classCode: "MATH-808",
       totalXP: 980,
       level: 5,
-      title: 'Fraction Wizard',
+      title: "Fraction Wizard",
       streakDays: 4,
-      lastActiveDate: new Date().toISOString().split('T')[0],
+      lastActiveDate: new Date().toISOString().split("T")[0],
       soundEnabled: true,
-      unlockedBadges: ['first_dodging', 'streak_5', 'table_master_12'],
+      unlockedBadges: ["first_dodging", "streak_5", "table_master_12"],
       starsCollected: 8,
       assignedMinTable: 2,
       assignedMaxTable: 12,
       assignedTimePerQuestionSec: 8,
       assignedQuestionCount: 15,
-      assignedMode: 'missing_factor',
+      assignedMode: "missing_factor",
       testsCompleted: 7,
       avgAccuracy: 96,
       avgSpeedSec: 3.9,
     },
   },
   {
-    id: 'std_kai',
-    username: 'kai.t',
-    password: 'password123',
-    name: 'Kai Takahashi',
-    avatar: '🐉',
-    grade: 'explorer',
-    classCode: 'MATH-808',
-    createdAt: '2026-08-21T10:00:00.000Z',
+    id: "std_kai",
+    username: "kai.t",
+    password: "password123",
+    name: "Kai Takahashi",
+    avatar: "🐉",
+    grade: "explorer",
+    classCode: "MATH-808",
+    createdAt: "2026-08-21T10:00:00.000Z",
     assignedMinTable: 2,
     assignedMaxTable: 10,
     assignedTimePerQuestionSec: 12,
     assignedQuestionCount: 10,
-    assignedMode: 'multiplication',
+    assignedMode: "multiplication",
     profile: {
-      id: 'std_kai',
-      username: 'kai.t',
-      name: 'Kai Takahashi',
-      avatar: '🐉',
-      grade: 'explorer',
-      classCode: 'MATH-808',
+      id: "std_kai",
+      username: "kai.t",
+      name: "Kai Takahashi",
+      avatar: "🐉",
+      grade: "explorer",
+      classCode: "MATH-808",
       totalXP: 440,
       level: 3,
-      title: 'Equation Explorer',
+      title: "Equation Explorer",
       streakDays: 2,
-      lastActiveDate: new Date().toISOString().split('T')[0],
+      lastActiveDate: new Date().toISOString().split("T")[0],
       soundEnabled: true,
-      unlockedBadges: ['first_dodging', 'streak_5'],
+      unlockedBadges: ["first_dodging", "streak_5"],
       starsCollected: 4,
       assignedMinTable: 2,
       assignedMaxTable: 10,
       assignedTimePerQuestionSec: 12,
       assignedQuestionCount: 10,
-      assignedMode: 'multiplication',
+      assignedMode: "multiplication",
       testsCompleted: 3,
       avgAccuracy: 90,
       avgSpeedSec: 5.4,
     },
   },
   {
-    id: 'std_zainab',
-    username: 'zainab.a',
-    password: 'password123',
-    name: 'Zainab Al-Mansoor',
-    avatar: '🌟',
-    grade: 'rookie',
-    classCode: 'MATH-808',
-    createdAt: '2026-08-22T10:00:00.000Z',
+    id: "std_zainab",
+    username: "zainab.a",
+    password: "password123",
+    name: "Zainab Al-Mansoor",
+    avatar: "🌟",
+    grade: "rookie",
+    classCode: "MATH-808",
+    createdAt: "2026-08-22T10:00:00.000Z",
     assignedMinTable: 2,
     assignedMaxTable: 9,
     assignedTimePerQuestionSec: 15,
     assignedQuestionCount: 10,
-    assignedMode: 'multiplication',
+    assignedMode: "multiplication",
     profile: {
-      id: 'std_zainab',
-      username: 'zainab.a',
-      name: 'Zainab Al-Mansoor',
-      avatar: '🌟',
-      grade: 'rookie',
-      classCode: 'MATH-808',
+      id: "std_zainab",
+      username: "zainab.a",
+      name: "Zainab Al-Mansoor",
+      avatar: "🌟",
+      grade: "rookie",
+      classCode: "MATH-808",
       totalXP: 290,
       level: 2,
-      title: 'Number Scout',
+      title: "Number Scout",
       streakDays: 1,
-      lastActiveDate: new Date().toISOString().split('T')[0],
+      lastActiveDate: new Date().toISOString().split("T")[0],
       soundEnabled: true,
-      unlockedBadges: ['first_dodging'],
+      unlockedBadges: ["first_dodging"],
       starsCollected: 3,
       assignedMinTable: 2,
       assignedMaxTable: 9,
       assignedTimePerQuestionSec: 15,
       assignedQuestionCount: 10,
-      assignedMode: 'multiplication',
+      assignedMode: "multiplication",
       testsCompleted: 2,
       avgAccuracy: 88,
       avgSpeedSec: 6.2,
@@ -486,7 +499,7 @@ export const StorageService = {
       const saved = localStorage.getItem(STORAGE_KEYS.AUTH);
       if (saved) {
         const parsed = JSON.parse(saved);
-        if (parsed && typeof parsed.isAuthenticated === 'boolean') {
+        if (parsed && typeof parsed.isAuthenticated === "boolean") {
           return parsed;
         }
       }
@@ -507,46 +520,61 @@ export const StorageService = {
     try {
       localStorage.setItem(STORAGE_KEYS.AUTH, JSON.stringify(state));
     } catch (e) {
-      console.warn('Could not save auth state', e);
+      console.warn("Could not save auth state", e);
     }
   },
 
-  login(username: string, pass: string): { success: boolean; role?: 'admin' | 'student'; student?: StudentAccount; error?: string } {
+  login(
+    username: string,
+    pass: string,
+  ): {
+    success: boolean;
+    role?: "admin" | "student";
+    student?: StudentAccount;
+    error?: string;
+  } {
     const trimmedUser = username.trim().toLowerCase();
     const trimmedPass = pass.trim();
 
     // Check Admin Login (Abrash: 123oPm78)
-    if (trimmedUser === ADMIN_CREDENTIALS.username.toLowerCase() && trimmedPass === ADMIN_CREDENTIALS.password) {
+    if (
+      trimmedUser === ADMIN_CREDENTIALS.username.toLowerCase() &&
+      trimmedPass === ADMIN_CREDENTIALS.password
+    ) {
       const authState: AuthState = {
         isAuthenticated: true,
-        role: 'admin',
+        role: "admin",
         currentStudentId: null,
         username: ADMIN_CREDENTIALS.username,
         name: ADMIN_CREDENTIALS.name,
       };
       this.setAuthState(authState);
-      return { success: true, role: 'admin' };
+      return { success: true, role: "admin" };
     }
 
     // Check Student Login
     const students = this.getStudents();
     const student = students.find(
-      (s) => s.username.toLowerCase() === trimmedUser && s.password === trimmedPass
+      (s) =>
+        s.username.toLowerCase() === trimmedUser && s.password === trimmedPass,
     );
 
     if (student) {
       const authState: AuthState = {
         isAuthenticated: true,
-        role: 'student',
+        role: "student",
         currentStudentId: student.id,
         username: student.username,
         name: student.name,
       };
       this.setAuthState(authState);
-      return { success: true, role: 'student', student };
+      return { success: true, role: "student", student };
     }
 
-    return { success: false, error: 'Invalid username or password. Please check your credentials.' };
+    return {
+      success: false,
+      error: "Invalid username or password. Please check your credentials.",
+    };
   },
 
   logout() {
@@ -583,7 +611,7 @@ export const StorageService = {
     try {
       localStorage.setItem(STORAGE_KEYS.STUDENTS, JSON.stringify(students));
     } catch (e) {
-      console.warn('Could not save students', e);
+      console.warn("Could not save students", e);
     }
   },
 
@@ -602,20 +630,28 @@ export const StorageService = {
     return students[0] || DEFAULT_STUDENTS[0];
   },
 
-  saveOrUpdateStudent(student: Partial<StudentAccount> & { id?: string; username: string; name: string }): StudentAccount {
+  saveOrUpdateStudent(
+    student: Partial<StudentAccount> & {
+      id?: string;
+      username: string;
+      name: string;
+    },
+  ): StudentAccount {
     const students = this.getStudents();
     const existingIdx = students.findIndex(
-      (s) => (student.id && s.id === student.id) || s.username.toLowerCase() === student.username.toLowerCase()
+      (s) =>
+        (student.id && s.id === student.id) ||
+        s.username.toLowerCase() === student.username.toLowerCase(),
     );
 
     const minTable = student.assignedMinTable ?? 2;
     const maxTable = student.assignedMaxTable ?? 12;
     const timeSec = student.assignedTimePerQuestionSec ?? 10;
     const qCount = student.assignedQuestionCount ?? 15;
-    const mode = student.assignedMode ?? 'multiplication';
-    const grade = student.grade ?? 'explorer';
-    const avatar = student.avatar ?? '🧑‍🎓';
-    const classCode = student.classCode ?? 'MATH-808';
+    const mode = student.assignedMode ?? "multiplication";
+    const grade = student.grade ?? "explorer";
+    const avatar = student.avatar ?? "🧑‍🎓";
+    const classCode = student.classCode ?? "MATH-808";
 
     if (existingIdx >= 0) {
       const existing = students[existingIdx];
@@ -642,14 +678,16 @@ export const StorageService = {
       };
       students[existingIdx] = updated;
       this.saveStudents(students);
-      ApiService.updateStudent(updated.id, updated).catch((e) => console.warn('Server sync update failed:', e));
+      ApiService.updateStudent(updated.id, updated).catch((e) =>
+        console.warn("Server sync update failed:", e),
+      );
       return updated;
     } else {
       const newId = `std_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
       const newStudent: StudentAccount = {
         id: newId,
         username: student.username.trim().toLowerCase(),
-        password: student.password || 'password123',
+        password: student.password || "password123",
         name: student.name.trim(),
         avatar,
         grade,
@@ -670,9 +708,9 @@ export const StorageService = {
           classCode,
           totalXP: 0,
           level: 1,
-          title: 'Math Rookie',
+          title: "Math Rookie",
           streakDays: 1,
-          lastActiveDate: new Date().toISOString().split('T')[0],
+          lastActiveDate: new Date().toISOString().split("T")[0],
           soundEnabled: true,
           unlockedBadges: [],
           starsCollected: 0,
@@ -689,7 +727,9 @@ export const StorageService = {
       };
       students.push(newStudent);
       this.saveStudents(students);
-      ApiService.createStudent(newStudent).catch((e) => console.warn('Server sync create failed:', e));
+      ApiService.createStudent(newStudent).catch((e) =>
+        console.warn("Server sync create failed:", e),
+      );
       return newStudent;
     }
   },
@@ -699,7 +739,9 @@ export const StorageService = {
     const filtered = students.filter((s) => s.id !== id);
     if (filtered.length !== students.length) {
       this.saveStudents(filtered);
-      ApiService.deleteStudent(id).catch((e) => console.warn('Server sync delete failed:', e));
+      ApiService.deleteStudent(id).catch((e) =>
+        console.warn("Server sync delete failed:", e),
+      );
       return true;
     }
     return false;
@@ -724,7 +766,8 @@ export const StorageService = {
       students[idx].classCode = profile.classCode;
       students[idx].assignedMinTable = profile.assignedMinTable;
       students[idx].assignedMaxTable = profile.assignedMaxTable;
-      students[idx].assignedTimePerQuestionSec = profile.assignedTimePerQuestionSec;
+      students[idx].assignedTimePerQuestionSec =
+        profile.assignedTimePerQuestionSec;
       students[idx].assignedQuestionCount = profile.assignedQuestionCount;
       students[idx].assignedMode = profile.assignedMode;
       this.saveStudents(students);
@@ -742,12 +785,18 @@ export const StorageService = {
     }
 
     // Return template populated with student's test history
-    const allAttempts = this.getAllAttempts().filter((a) => a.studentId === current.id);
+    const allAttempts = this.getAllAttempts().filter(
+      (a) => a.studentId === current.id,
+    );
     const stats: StudentStats = {
       ...INITIAL_STATS_TEMPLATE,
-      totalQuestions: current.profile.testsCompleted * (current.assignedQuestionCount || 10),
+      totalQuestions:
+        current.profile.testsCompleted * (current.assignedQuestionCount || 10),
       totalCorrect: Math.round(
-        (current.profile.testsCompleted * (current.assignedQuestionCount || 10) * (current.profile.avgAccuracy || 90)) / 100
+        (current.profile.testsCompleted *
+          (current.assignedQuestionCount || 10) *
+          (current.profile.avgAccuracy || 90)) /
+          100,
       ),
       dodgingAttempts: allAttempts,
     };
@@ -760,7 +809,7 @@ export const StorageService = {
     try {
       localStorage.setItem(key, JSON.stringify(stats));
     } catch (e) {
-      console.warn('Could not save stats', e);
+      console.warn("Could not save stats", e);
     }
   },
 
@@ -783,7 +832,7 @@ export const StorageService = {
     try {
       localStorage.setItem(STORAGE_KEYS.ATTEMPTS, JSON.stringify(attempts));
     } catch (e) {
-      console.warn('Could not save attempts', e);
+      console.warn("Could not save attempts", e);
     }
   },
 
@@ -803,7 +852,7 @@ export const StorageService = {
     try {
       localStorage.setItem(STORAGE_KEYS.OFFLINE_QUEUE, JSON.stringify(queue));
     } catch (e) {
-      console.warn('Could not save offline queue', e);
+      console.warn("Could not save offline queue", e);
     }
   },
 
@@ -824,7 +873,7 @@ export const StorageService = {
     updatedStats: StudentStats;
     newBadgesUnlocked: AchievementBadge[];
   } {
-    const isOnline = typeof navigator !== 'undefined' ? navigator.onLine : true;
+    const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
     attempt.isSynced = isOnline;
     if (isOnline) {
       attempt.syncedAt = new Date().toISOString();
@@ -836,7 +885,9 @@ export const StorageService = {
     this.saveAllAttempts(attempts);
 
     // Sync to centralized server in real-time
-    ApiService.submitAttempt(attempt).catch((e) => console.warn('Server attempt submit failed:', e));
+    ApiService.submitAttempt(attempt).catch((e) =>
+      console.warn("Server attempt submit failed:", e),
+    );
 
     // If offline, add to pending queue
     if (!isOnline) {
@@ -846,11 +897,12 @@ export const StorageService = {
     }
 
     // Update Student Profile & Stats
-    const student = this.getStudentById(attempt.studentId) || this.getCurrentStudent();
+    const student =
+      this.getStudentById(attempt.studentId) || this.getCurrentStudent();
     const profile = student.profile;
     const stats = this.getStats();
     const badges = this.getBadges();
-    const today = new Date().toISOString().split('T')[0];
+    const today = new Date().toISOString().split("T")[0];
 
     // Compute updated aggregates
     profile.totalXP += attempt.xpGained;
@@ -860,7 +912,9 @@ export const StorageService = {
 
     // Daily streak check
     if (profile.lastActiveDate !== today) {
-      const yesterday = new Date(Date.now() - 86400000).toISOString().split('T')[0];
+      const yesterday = new Date(Date.now() - 86400000)
+        .toISOString()
+        .split("T")[0];
       if (profile.lastActiveDate === yesterday) {
         profile.streakDays += 1;
       } else {
@@ -874,8 +928,13 @@ export const StorageService = {
     profile.testsCompleted = studentAttempts.length;
     const totalAcc = studentAttempts.reduce((acc, a) => acc + a.accuracy, 0);
     profile.avgAccuracy = Math.round(totalAcc / studentAttempts.length);
-    const totalSpeed = studentAttempts.reduce((acc, a) => acc + a.avgTimePerQuestionSec, 0);
-    profile.avgSpeedSec = parseFloat((totalSpeed / studentAttempts.length).toFixed(1));
+    const totalSpeed = studentAttempts.reduce(
+      (acc, a) => acc + a.avgTimePerQuestionSec,
+      0,
+    );
+    profile.avgSpeedSec = parseFloat(
+      (totalSpeed / studentAttempts.length).toFixed(1),
+    );
 
     // Update Stats object
     stats.totalQuestions += attempt.totalQuestions;
@@ -923,8 +982,8 @@ export const StorageService = {
   getTodayDateString(): string {
     const d = new Date();
     const year = d.getFullYear();
-    const month = String(d.getMonth() + 1).padStart(2, '0');
-    const day = String(d.getDate()).padStart(2, '0');
+    const month = String(d.getMonth() + 1).padStart(2, "0");
+    const day = String(d.getDate()).padStart(2, "0");
     return `${year}-${month}-${day}`;
   },
 
@@ -937,15 +996,17 @@ export const StorageService = {
     hoursUntilMidnight: number;
   } {
     const auth = this.getAuthState();
-    const targetStudentId = studentId || auth.currentStudentId || 'std_alex';
-    const attempts = this.getAllAttempts().filter((a) => a.studentId === targetStudentId);
+    const targetStudentId = studentId || auth.currentStudentId || "std_alex";
+    const attempts = this.getAllAttempts().filter(
+      (a) => a.studentId === targetStudentId,
+    );
     const todayStr = this.getTodayDateString();
 
     const todayAttempt = attempts.find((a) => {
       const attemptDate = new Date(a.timestamp);
       const year = attemptDate.getFullYear();
-      const month = String(attemptDate.getMonth() + 1).padStart(2, '0');
-      const day = String(attemptDate.getDate()).padStart(2, '0');
+      const month = String(attemptDate.getMonth() + 1).padStart(2, "0");
+      const day = String(attemptDate.getDate()).padStart(2, "0");
       const dateStr = `${year}-${month}-${day}`;
       return dateStr === todayStr;
     });
@@ -973,16 +1034,18 @@ export const StorageService = {
     reason?: string;
   } {
     const auth = this.getAuthState();
-    if (auth.role === 'admin') {
+    if (auth.role === "admin") {
       return { allowed: true };
     }
 
-    const { completed, todayAttempt } = this.hasCompletedDailyDodgingTest(studentId);
+    const { completed, todayAttempt } =
+      this.hasCompletedDailyDodgingTest(studentId);
     if (completed && todayAttempt) {
       return {
         allowed: false,
         todayAttempt,
-        reason: 'Daily Dodging Test already completed for today! Each student is allowed 1 official test per day.',
+        reason:
+          "Daily Dodging Test already completed for today! Each student is allowed 1 official test per day.",
       };
     }
 
@@ -994,9 +1057,12 @@ export const StorageService = {
    */
   getStudentStreakData(studentId?: string): StudentStreakData {
     const auth = this.getAuthState();
-    const targetStudentId = studentId || auth.currentStudentId || 'std_alex';
-    const student = this.getStudentById(targetStudentId) || this.getCurrentStudent();
-    const attempts = this.getAllAttempts().filter((a) => a.studentId === targetStudentId);
+    const targetStudentId = studentId || auth.currentStudentId || "std_alex";
+    const student =
+      this.getStudentById(targetStudentId) || this.getCurrentStudent();
+    const attempts = this.getAllAttempts().filter(
+      (a) => a.studentId === targetStudentId,
+    );
     const todayStr = this.getTodayDateString();
 
     // Map attempts by date
@@ -1004,8 +1070,8 @@ export const StorageService = {
     attempts.forEach((a) => {
       const d = new Date(a.timestamp);
       const year = d.getFullYear();
-      const month = String(d.getMonth() + 1).padStart(2, '0');
-      const day = String(d.getDate()).padStart(2, '0');
+      const month = String(d.getMonth() + 1).padStart(2, "0");
+      const day = String(d.getDate()).padStart(2, "0");
       const dateStr = `${year}-${month}-${day}`;
       if (!attemptsByDate[dateStr]) attemptsByDate[dateStr] = [];
       attemptsByDate[dateStr].push(a);
@@ -1013,22 +1079,28 @@ export const StorageService = {
 
     const todayAttempts = attemptsByDate[todayStr] || [];
     const isTodayQuotaCompleted = todayAttempts.length > 0;
-    const todayQuestionsSolved = todayAttempts.reduce((sum, a) => sum + (a.totalQuestions || 0), 0);
+    const todayQuestionsSolved = todayAttempts.reduce(
+      (sum, a) => sum + (a.totalQuestions || 0),
+      0,
+    );
     const todayQuotaTarget = student.profile.assignedQuestionCount || 15;
     const todayQuotaProgressPct = isTodayQuotaCompleted
       ? 100
-      : Math.min(100, Math.round((todayQuestionsSolved / todayQuotaTarget) * 100));
+      : Math.min(
+          100,
+          Math.round((todayQuestionsSolved / todayQuotaTarget) * 100),
+        );
 
     // Calculate 7-day sliding window (last 6 days + today)
     const weekCalendar: DayStreakItem[] = [];
-    const dayNames = ['Sun', 'Mon', 'Tue', 'Wed', 'Thu', 'Fri', 'Sat'];
+    const dayNames = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
 
     for (let i = 6; i >= 0; i--) {
       const targetDate = new Date();
       targetDate.setDate(targetDate.getDate() - i);
       const year = targetDate.getFullYear();
-      const month = String(targetDate.getMonth() + 1).padStart(2, '0');
-      const day = String(targetDate.getDate()).padStart(2, '0');
+      const month = String(targetDate.getMonth() + 1).padStart(2, "0");
+      const day = String(targetDate.getDate()).padStart(2, "0");
       const dateStr = `${year}-${month}-${day}`;
 
       const dayAttempts = attemptsByDate[dateStr] || [];
@@ -1036,9 +1108,18 @@ export const StorageService = {
       const isToday = dateStr === todayStr;
       const isPast = dateStr < todayStr;
       const testsCompleted = dayAttempts.length;
-      const totalQuestions = dayAttempts.reduce((s, a) => s + (a.totalQuestions || 0), 0);
-      const totalCorrect = dayAttempts.reduce((s, a) => s + (a.correctQuestions || 0), 0);
-      const accuracy = totalQuestions > 0 ? Math.round((totalCorrect / totalQuestions) * 100) : 0;
+      const totalQuestions = dayAttempts.reduce(
+        (s, a) => s + (a.totalQuestions || 0),
+        0,
+      );
+      const totalCorrect = dayAttempts.reduce(
+        (s, a) => s + (a.correctQuestions || 0),
+        0,
+      );
+      const accuracy =
+        totalQuestions > 0
+          ? Math.round((totalCorrect / totalQuestions) * 100)
+          : 0;
       const xpEarned = dayAttempts.reduce((s, a) => s + (a.xpGained || 0), 0);
 
       weekCalendar.push({
@@ -1059,35 +1140,36 @@ export const StorageService = {
     let streakDays = student.profile.streakDays || 0;
 
     // Determine streak tier
-    let streakTier: 'none' | 'ember' | 'blaze' | 'inferno' | 'phoenix' = 'none';
-    let streakTierLabel = 'Ignite Your Flame';
-    let streakTierEmoji = '🔥';
+    let streakTier: "none" | "ember" | "blaze" | "inferno" | "phoenix" = "none";
+    let streakTierLabel = "Ignite Your Flame";
+    let streakTierEmoji = "🔥";
     let xpMultiplier = 1.0;
 
     if (streakDays >= 14) {
-      streakTier = 'phoenix';
-      streakTierLabel = 'Cosmic Phoenix Streak';
-      streakTierEmoji = '🌟🔥';
+      streakTier = "phoenix";
+      streakTierLabel = "Cosmic Phoenix Streak";
+      streakTierEmoji = "🌟🔥";
       xpMultiplier = 1.5;
     } else if (streakDays >= 7) {
-      streakTier = 'inferno';
-      streakTierLabel = 'Inferno Master';
-      streakTierEmoji = '⚡🔥';
+      streakTier = "inferno";
+      streakTierLabel = "Inferno Master";
+      streakTierEmoji = "⚡🔥";
       xpMultiplier = 1.35;
     } else if (streakDays >= 3) {
-      streakTier = 'blaze';
-      streakTierLabel = 'Blazing Flame';
-      streakTierEmoji = '🔥🔥';
+      streakTier = "blaze";
+      streakTierLabel = "Blazing Flame";
+      streakTierEmoji = "🔥🔥";
       xpMultiplier = 1.2;
     } else if (streakDays >= 1) {
-      streakTier = 'ember';
-      streakTierLabel = 'Ember Spark';
-      streakTierEmoji = '🔥';
+      streakTier = "ember";
+      streakTierLabel = "Ember Spark";
+      streakTierEmoji = "🔥";
       xpMultiplier = 1.1;
     }
 
     const milestones = [3, 5, 7, 10, 14, 21, 30, 50, 100];
-    const nextMilestoneDays = milestones.find((m) => m > streakDays) || streakDays + 5;
+    const nextMilestoneDays =
+      milestones.find((m) => m > streakDays) || streakDays + 5;
     const daysToNextMilestone = Math.max(1, nextMilestoneDays - streakDays);
 
     return {
@@ -1119,14 +1201,16 @@ export const StorageService = {
       if (a.studentId !== studentId) return true;
       const attemptDate = new Date(a.timestamp);
       const year = attemptDate.getFullYear();
-      const month = String(attemptDate.getMonth() + 1).padStart(2, '0');
-      const day = String(attemptDate.getDate()).padStart(2, '0');
+      const month = String(attemptDate.getMonth() + 1).padStart(2, "0");
+      const day = String(attemptDate.getDate()).padStart(2, "0");
       const dateStr = `${year}-${month}-${day}`;
       return dateStr !== todayStr;
     });
 
     this.saveAllAttempts(filtered);
-    ApiService.resetStudentDailyTest(studentId).catch((e) => console.warn('Server reset daily failed:', e));
+    ApiService.resetStudentDailyTest(studentId).catch((e) =>
+      console.warn("Server reset daily failed:", e),
+    );
     return true;
   },
 
@@ -1135,11 +1219,12 @@ export const StorageService = {
    */
   async syncWithServer(): Promise<void> {
     try {
-      const [serverStudents, serverAttempts, serverMistakes] = await Promise.all([
-        ApiService.getStudents(),
-        ApiService.getAttempts(),
-        ApiService.getMistakes(),
-      ]);
+      const [serverStudents, serverAttempts, serverMistakes] =
+        await Promise.all([
+          ApiService.getStudents(),
+          ApiService.getAttempts(),
+          ApiService.getMistakes(),
+        ]);
 
       if (Array.isArray(serverStudents) && serverStudents.length > 0) {
         this.saveStudents(serverStudents);
@@ -1151,7 +1236,7 @@ export const StorageService = {
         this.saveMistakes(serverMistakes);
       }
     } catch (err) {
-      console.warn('Background sync with server failed:', err);
+      console.warn("Background sync with server failed:", err);
     }
   },
 
@@ -1193,7 +1278,9 @@ export const StorageService = {
       if (saved) {
         const all: MistakeRecord[] = JSON.parse(saved);
         if (auth.currentStudentId) {
-          return all.filter((m) => !m.studentId || m.studentId === auth.currentStudentId);
+          return all.filter(
+            (m) => !m.studentId || m.studentId === auth.currentStudentId,
+          );
         }
         return all;
       }
@@ -1206,8 +1293,18 @@ export const StorageService = {
   saveMistakes(mistakes: MistakeRecord[]) {
     try {
       localStorage.setItem(STORAGE_KEYS.MISTAKES, JSON.stringify(mistakes));
+      // Attempt to push mistakes to server when online
+      try {
+        if (typeof navigator !== "undefined" && navigator.onLine) {
+          ApiService.saveMistakes(mistakes).catch(() => {
+            // Ignore network errors; local copy remains authoritative until sync
+          });
+        }
+      } catch {
+        // ignore
+      }
     } catch (e) {
-      console.warn('Could not save mistakes', e);
+      console.warn("Could not save mistakes", e);
     }
   },
 
@@ -1215,7 +1312,9 @@ export const StorageService = {
     const auth = this.getAuthState();
     const mistakes = this.getMistakes();
     const existingIndex = mistakes.findIndex(
-      (m) => m.question.text === question.text && (!m.studentId || m.studentId === auth.currentStudentId)
+      (m) =>
+        m.question.text === question.text &&
+        (!m.studentId || m.studentId === auth.currentStudentId),
     );
     if (existingIndex >= 0) {
       mistakes[existingIndex].studentAnswer = studentAnswer;
@@ -1225,7 +1324,7 @@ export const StorageService = {
     } else {
       mistakes.unshift({
         id: `mistake_${Date.now()}_${Math.random().toString(36).substring(2, 5)}`,
-        studentId: auth.currentStudentId || 'std_alex',
+        studentId: auth.currentStudentId || "std_alex",
         question,
         studentAnswer,
         timestamp: new Date().toISOString(),
@@ -1262,7 +1361,7 @@ export const StorageService = {
     try {
       localStorage.setItem(STORAGE_KEYS.QUEST_STAGES, JSON.stringify(stages));
     } catch (e) {
-      console.warn('Could not save quest stages', e);
+      console.warn("Could not save quest stages", e);
     }
   },
 
@@ -1282,35 +1381,53 @@ export const StorageService = {
 
     const studentMetrics = students.map((s) => {
       const sAttempts = attempts.filter((a) => a.studentId === s.id);
-      
-      const validSpeedAttempts = sAttempts.filter((a) => (a.accuracy || 0) >= 80 && (a.avgTimePerQuestionSec || 0) > 0);
-      const bestSpeed = validSpeedAttempts.length > 0
-        ? Math.min(...validSpeedAttempts.map((a) => a.avgTimePerQuestionSec))
-        : (s.profile.avgSpeedSec > 0 ? s.profile.avgSpeedSec : 999);
 
-      const avgAccuracy = sAttempts.length > 0
-        ? Math.round(sAttempts.reduce((sum, a) => sum + (a.accuracy || 0), 0) / sAttempts.length)
-        : (s.profile.avgAccuracy || 0);
+      const validSpeedAttempts = sAttempts.filter(
+        (a) => (a.accuracy || 0) >= 80 && (a.avgTimePerQuestionSec || 0) > 0,
+      );
+      const bestSpeed =
+        validSpeedAttempts.length > 0
+          ? Math.min(...validSpeedAttempts.map((a) => a.avgTimePerQuestionSec))
+          : s.profile.avgSpeedSec > 0
+            ? s.profile.avgSpeedSec
+            : 999;
 
-      const bestScore = sAttempts.length > 0
-        ? Math.max(...sAttempts.map((a) => a.score || 0))
-        : Math.max(0, s.profile.totalXP || 0);
+      const avgAccuracy =
+        sAttempts.length > 0
+          ? Math.round(
+              sAttempts.reduce((sum, a) => sum + (a.accuracy || 0), 0) /
+                sAttempts.length,
+            )
+          : s.profile.avgAccuracy || 0;
 
-      const minTestTime = sAttempts.length > 0
-        ? Math.min(...sAttempts.map((a) => a.avgTimePerQuestionSec || 999))
-        : (s.profile.avgSpeedSec || 999);
+      const bestScore =
+        sAttempts.length > 0
+          ? Math.max(...sAttempts.map((a) => a.score || 0))
+          : Math.max(0, s.profile.totalXP || 0);
+
+      const minTestTime =
+        sAttempts.length > 0
+          ? Math.min(...sAttempts.map((a) => a.avgTimePerQuestionSec || 999))
+          : s.profile.avgSpeedSec || 999;
 
       const streak = s.profile.streakDays || 0;
       const totalXP = s.profile.totalXP || 0;
-      const perfectTests = sAttempts.filter((a) => a.accuracy === 100 && a.totalQuestions >= 10).length;
+      const perfectTests = sAttempts.filter(
+        (a) => a.accuracy === 100 && a.totalQuestions >= 10,
+      ).length;
       const testsCount = sAttempts.length || s.profile.testsCompleted || 0;
 
-      const highAccAttempts = sAttempts.filter((a) => (a.accuracy || 0) >= 90 && (a.totalTimeSpentSec || 0) > 0);
-      const bestTotalTime = highAccAttempts.length > 0
-        ? Math.min(...highAccAttempts.map((a) => a.totalTimeSpentSec))
-        : 9999;
+      const highAccAttempts = sAttempts.filter(
+        (a) => (a.accuracy || 0) >= 90 && (a.totalTimeSpentSec || 0) > 0,
+      );
+      const bestTotalTime =
+        highAccAttempts.length > 0
+          ? Math.min(...highAccAttempts.map((a) => a.totalTimeSpentSec))
+          : 9999;
 
-      const totalCorrect = sAttempts.reduce((sum, a) => sum + (a.correctQuestions || 0), 0) || ((s.profile.testsCompleted || 0) * 10);
+      const totalCorrect =
+        sAttempts.reduce((sum, a) => sum + (a.correctQuestions || 0), 0) ||
+        (s.profile.testsCompleted || 0) * 10;
 
       return {
         student: s,
@@ -1328,67 +1445,101 @@ export const StorageService = {
     });
 
     const evaluatedBadges: AchievementBadge[] = INITIAL_BADGES.map((badge) => {
-      let holder: { student: StudentAccount; recordDisplay: string } | null = null;
+      let holder: { student: StudentAccount; recordDisplay: string } | null =
+        null;
 
-      if (badge.id === 'cheetah_speed') {
+      if (badge.id === "cheetah_speed") {
         const candidates = studentMetrics.filter((m) => m.bestSpeed < 900);
         if (candidates.length > 0) {
           candidates.sort((a, b) => a.bestSpeed - b.bestSpeed);
-          holder = { student: candidates[0].student, recordDisplay: `${candidates[0].bestSpeed.toFixed(1)}s / question` };
+          holder = {
+            student: candidates[0].student,
+            recordDisplay: `${candidates[0].bestSpeed.toFixed(1)}s / question`,
+          };
         }
-      } else if (badge.id === 'deadshot_accuracy') {
+      } else if (badge.id === "deadshot_accuracy") {
         const candidates = studentMetrics.filter((m) => m.avgAccuracy > 0);
         if (candidates.length > 0) {
-          candidates.sort((a, b) => b.avgAccuracy - a.avgAccuracy || b.bestScore - a.bestScore);
-          holder = { student: candidates[0].student, recordDisplay: `${candidates[0].avgAccuracy}% Accuracy` };
+          candidates.sort(
+            (a, b) =>
+              b.avgAccuracy - a.avgAccuracy || b.bestScore - a.bestScore,
+          );
+          holder = {
+            student: candidates[0].student,
+            recordDisplay: `${candidates[0].avgAccuracy}% Accuracy`,
+          };
         }
-      } else if (badge.id === 'apex_score') {
+      } else if (badge.id === "apex_score") {
         const candidates = studentMetrics.filter((m) => m.bestScore > 0);
         if (candidates.length > 0) {
           candidates.sort((a, b) => b.bestScore - a.bestScore);
-          holder = { student: candidates[0].student, recordDisplay: `${candidates[0].bestScore} pts Record` };
+          holder = {
+            student: candidates[0].student,
+            recordDisplay: `${candidates[0].bestScore} pts Record`,
+          };
         }
-      } else if (badge.id === 'lightning_reaction') {
+      } else if (badge.id === "lightning_reaction") {
         const candidates = studentMetrics.filter((m) => m.minTestTime < 900);
         if (candidates.length > 0) {
           candidates.sort((a, b) => a.minTestTime - b.minTestTime);
-          holder = { student: candidates[0].student, recordDisplay: `${candidates[0].minTestTime.toFixed(1)}s reaction` };
+          holder = {
+            student: candidates[0].student,
+            recordDisplay: `${candidates[0].minTestTime.toFixed(1)}s reaction`,
+          };
         }
-      } else if (badge.id === 'streak_overlord') {
+      } else if (badge.id === "streak_overlord") {
         const candidates = studentMetrics.filter((m) => m.streak > 0);
         if (candidates.length > 0) {
           candidates.sort((a, b) => b.streak - a.streak);
-          holder = { student: candidates[0].student, recordDisplay: `${candidates[0].streak} Day Streak` };
+          holder = {
+            student: candidates[0].student,
+            recordDisplay: `${candidates[0].streak} Day Streak`,
+          };
         }
-      } else if (badge.id === 'xp_titan') {
+      } else if (badge.id === "xp_titan") {
         const candidates = studentMetrics.filter((m) => m.totalXP > 0);
         if (candidates.length > 0) {
           candidates.sort((a, b) => b.totalXP - a.totalXP);
-          holder = { student: candidates[0].student, recordDisplay: `${candidates[0].totalXP.toLocaleString()} XP` };
+          holder = {
+            student: candidates[0].student,
+            recordDisplay: `${candidates[0].totalXP.toLocaleString()} XP`,
+          };
         }
-      } else if (badge.id === 'iron_wall') {
+      } else if (badge.id === "iron_wall") {
         const candidates = studentMetrics.filter((m) => m.perfectTests > 0);
         if (candidates.length > 0) {
           candidates.sort((a, b) => b.perfectTests - a.perfectTests);
-          holder = { student: candidates[0].student, recordDisplay: `${candidates[0].perfectTests} Flawless 10/10s` };
+          holder = {
+            student: candidates[0].student,
+            recordDisplay: `${candidates[0].perfectTests} Flawless 10/10s`,
+          };
         }
-      } else if (badge.id === 'dodging_warlord') {
+      } else if (badge.id === "dodging_warlord") {
         const candidates = studentMetrics.filter((m) => m.testsCount > 0);
         if (candidates.length > 0) {
           candidates.sort((a, b) => b.testsCount - a.testsCount);
-          holder = { student: candidates[0].student, recordDisplay: `${candidates[0].testsCount} Tests Done` };
+          holder = {
+            student: candidates[0].student,
+            recordDisplay: `${candidates[0].testsCount} Tests Done`,
+          };
         }
-      } else if (badge.id === 'supersonic_prodigy') {
+      } else if (badge.id === "supersonic_prodigy") {
         const candidates = studentMetrics.filter((m) => m.bestTotalTime < 9000);
         if (candidates.length > 0) {
           candidates.sort((a, b) => a.bestTotalTime - b.bestTotalTime);
-          holder = { student: candidates[0].student, recordDisplay: `${candidates[0].bestTotalTime.toFixed(1)}s Total Duration` };
+          holder = {
+            student: candidates[0].student,
+            recordDisplay: `${candidates[0].bestTotalTime.toFixed(1)}s Total Duration`,
+          };
         }
-      } else if (badge.id === 'the_centurion') {
+      } else if (badge.id === "the_centurion") {
         const candidates = studentMetrics.filter((m) => m.totalCorrect > 0);
         if (candidates.length > 0) {
           candidates.sort((a, b) => b.totalCorrect - a.totalCorrect);
-          holder = { student: candidates[0].student, recordDisplay: `${candidates[0].totalCorrect} Problems Solved` };
+          holder = {
+            student: candidates[0].student,
+            recordDisplay: `${candidates[0].totalCorrect} Problems Solved`,
+          };
         }
       }
 
@@ -1400,16 +1551,18 @@ export const StorageService = {
           currentHolderName: holder.student.name,
           currentHolderAvatar: holder.student.avatar,
           recordValueDisplay: holder.recordDisplay,
-          unlocked: currentStudentId ? holder.student.id === currentStudentId : false,
+          unlocked: currentStudentId
+            ? holder.student.id === currentStudentId
+            : false,
         };
       }
 
       return {
         ...badge,
         currentHolderId: null,
-        currentHolderName: 'Unclaimed Record',
-        currentHolderAvatar: '👑',
-        recordValueDisplay: 'Set first record!',
+        currentHolderName: "Unclaimed Record",
+        currentHolderAvatar: "👑",
+        recordValueDisplay: "Set first record!",
         unlocked: false,
       };
     });
@@ -1440,14 +1593,16 @@ export const StorageService = {
     try {
       localStorage.setItem(STORAGE_KEYS.BADGES, JSON.stringify(badges));
     } catch (e) {
-      console.warn('Could not save badges', e);
+      console.warn("Could not save badges", e);
     }
   },
 
   // ==========================================
   // LEADERBOARD COMPUTATION ENGINE
   // ==========================================
-  getLeaderboard(timeframe: 'daily' | 'weekly' | 'all-time' | 'all' = 'all-time'): LeaderboardEntry[] {
+  getLeaderboard(
+    timeframe: "daily" | "weekly" | "all-time" | "all" = "all-time",
+  ): LeaderboardEntry[] {
     const students = this.getStudents();
     const attempts = this.getAllAttempts();
     const currentStudent = this.getCurrentStudent();
@@ -1456,34 +1611,57 @@ export const StorageService = {
     this.evaluateCompetitiveBadges();
 
     const now = new Date();
-    const todayStr = now.toISOString().split('T')[0];
+    const todayStr = now.toISOString().split("T")[0];
     const sevenDaysAgo = new Date(now.getTime() - 7 * 86400000);
 
     // Compute leaderboard entries
     const entries: LeaderboardEntry[] = students.map((s) => {
       const studentAttempts = attempts.filter((a) => a.studentId === s.id);
-      
+
       let timeframeAttempts = studentAttempts;
-      if (timeframe === 'daily') {
-        timeframeAttempts = studentAttempts.filter((a) => a.timestamp.startsWith(todayStr));
-      } else if (timeframe === 'weekly') {
-        timeframeAttempts = studentAttempts.filter((a) => new Date(a.timestamp) >= sevenDaysAgo);
+      if (timeframe === "daily") {
+        timeframeAttempts = studentAttempts.filter((a) =>
+          a.timestamp.startsWith(todayStr),
+        );
+      } else if (timeframe === "weekly") {
+        timeframeAttempts = studentAttempts.filter(
+          (a) => new Date(a.timestamp) >= sevenDaysAgo,
+        );
       }
 
-      const timeframeXP = timeframeAttempts.reduce((acc, a) => acc + a.xpGained, 0);
-      const totalScore = (timeframe === 'all-time' || timeframe === 'all') ? (s.profile.totalXP || 0) : timeframeXP;
-      
-      const acc = timeframeAttempts.length > 0
-        ? Math.round(timeframeAttempts.reduce((sum, a) => sum + (a.accuracy || 0), 0) / timeframeAttempts.length)
-        : (s.profile.avgAccuracy || 90);
+      const timeframeXP = timeframeAttempts.reduce(
+        (acc, a) => acc + a.xpGained,
+        0,
+      );
+      const totalScore =
+        timeframe === "all-time" || timeframe === "all"
+          ? s.profile.totalXP || 0
+          : timeframeXP;
 
-      const avgSpd = timeframeAttempts.length > 0
-        ? parseFloat((timeframeAttempts.reduce((sum, a) => sum + (a.avgTimePerQuestionSec || 0), 0) / timeframeAttempts.length).toFixed(1))
-        : (s.profile.avgSpeedSec || 4.5);
+      const acc =
+        timeframeAttempts.length > 0
+          ? Math.round(
+              timeframeAttempts.reduce((sum, a) => sum + (a.accuracy || 0), 0) /
+                timeframeAttempts.length,
+            )
+          : s.profile.avgAccuracy || 90;
 
-      const highestTestScore = studentAttempts.length > 0
-        ? Math.max(...studentAttempts.map((a) => a.score || 0))
-        : 0;
+      const avgSpd =
+        timeframeAttempts.length > 0
+          ? parseFloat(
+              (
+                timeframeAttempts.reduce(
+                  (sum, a) => sum + (a.avgTimePerQuestionSec || 0),
+                  0,
+                ) / timeframeAttempts.length
+              ).toFixed(1),
+            )
+          : s.profile.avgSpeedSec || 4.5;
+
+      const highestTestScore =
+        studentAttempts.length > 0
+          ? Math.max(...studentAttempts.map((a) => a.score || 0))
+          : 0;
 
       return {
         id: `lb_${s.id}`,
@@ -1513,7 +1691,11 @@ export const StorageService = {
       if (b.accuracy !== a.accuracy) {
         return b.accuracy - a.accuracy;
       }
-      if (a.avgSpeedSec !== b.avgSpeedSec && a.avgSpeedSec > 0 && b.avgSpeedSec > 0) {
+      if (
+        a.avgSpeedSec !== b.avgSpeedSec &&
+        a.avgSpeedSec > 0 &&
+        b.avgSpeedSec > 0
+      ) {
         return a.avgSpeedSec - b.avgSpeedSec; // Faster reaction speed ranks higher
       }
       return b.totalXP - a.totalXP;
@@ -1527,18 +1709,23 @@ export const StorageService = {
     return entries;
   },
 
-  calculateLevel(xp: number): { level: number; title: string; nextLevelXP: number; progressPercent: number } {
+  calculateLevel(xp: number): {
+    level: number;
+    title: string;
+    nextLevelXP: number;
+    progressPercent: number;
+  } {
     const thresholds = [
-      { lvl: 1, xp: 0, title: 'Math Rookie' },
-      { lvl: 2, xp: 100, title: 'Number Scout' },
-      { lvl: 3, xp: 250, title: 'Equation Explorer' },
-      { lvl: 4, xp: 500, title: 'Arithmetic Knight' },
-      { lvl: 5, xp: 900, title: 'Fraction Wizard' },
-      { lvl: 6, xp: 1400, title: 'Algebra Specialist' },
-      { lvl: 7, xp: 2000, title: 'Geometry Titan' },
-      { lvl: 8, xp: 2800, title: 'Math Master' },
-      { lvl: 9, xp: 3800, title: 'Grandmaster Champion' },
-      { lvl: 10, xp: 5000, title: 'Legendary Math God' },
+      { lvl: 1, xp: 0, title: "Math Rookie" },
+      { lvl: 2, xp: 100, title: "Number Scout" },
+      { lvl: 3, xp: 250, title: "Equation Explorer" },
+      { lvl: 4, xp: 500, title: "Arithmetic Knight" },
+      { lvl: 5, xp: 900, title: "Fraction Wizard" },
+      { lvl: 6, xp: 1400, title: "Algebra Specialist" },
+      { lvl: 7, xp: 2000, title: "Geometry Titan" },
+      { lvl: 8, xp: 2800, title: "Math Master" },
+      { lvl: 9, xp: 3800, title: "Grandmaster Champion" },
+      { lvl: 10, xp: 5000, title: "Legendary Math God" },
     ];
 
     let current = thresholds[0];
@@ -1547,7 +1734,11 @@ export const StorageService = {
     for (let i = 0; i < thresholds.length; i++) {
       if (xp >= thresholds[i].xp) {
         current = thresholds[i];
-        next = thresholds[i + 1] || { lvl: current.lvl + 1, xp: current.xp + 1500, title: 'Ascended Master' };
+        next = thresholds[i + 1] || {
+          lvl: current.lvl + 1,
+          xp: current.xp + 1500,
+          title: "Ascended Master",
+        };
       } else {
         break;
       }
@@ -1555,7 +1746,10 @@ export const StorageService = {
 
     const range = next.xp - current.xp;
     const progressXP = xp - current.xp;
-    const progressPercent = Math.min(100, Math.max(0, Math.round((progressXP / range) * 100)));
+    const progressPercent = Math.min(
+      100,
+      Math.max(0, Math.round((progressXP / range) * 100)),
+    );
 
     return {
       level: current.lvl,
@@ -1570,7 +1764,7 @@ export const StorageService = {
   // ==========================================
   exportDatabase(): string {
     const data = {
-      version: '3.0',
+      version: "3.0",
       exportedAt: new Date().toISOString(),
       admin: ADMIN_CREDENTIALS.username,
       students: this.getStudents(),
@@ -1602,7 +1796,7 @@ export const StorageService = {
       }
       return true;
     } catch (e) {
-      console.error('Import database failed', e);
+      console.error("Import database failed", e);
       return false;
     }
   },

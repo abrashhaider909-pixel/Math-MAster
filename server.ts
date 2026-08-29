@@ -1,24 +1,24 @@
-import express from 'express';
-import path from 'path';
-import fs from 'fs';
-import { fileURLToPath } from 'url';
-import { createServer as createViteServer } from 'vite';
+import express from "express";
+import path from "path";
+import fs from "fs";
+// fileURLToPath(import.meta.url) is not reliable after bundling to CJS;
+// use process.cwd() as a compatible __dirname for both dev and bundled builds.
+import { createServer as createViteServer } from "vite";
 
-const __filename = fileURLToPath(import.meta.url);
-const __dirname = path.dirname(__filename);
+const __dirname = process.cwd();
 
 const app = express();
-const PORT = 3000;
+const PORT = process.env.PORT ? Number(process.env.PORT) : 3000;
 
-app.use(express.json({ limit: '10mb' }));
+app.use(express.json({ limit: "10mb" }));
 
-// Ensure data directory exists
-const DATA_DIR = path.join(process.cwd(), 'data');
+// Allow configurable data dir (useful for hosting with volume mounts)
+const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
 if (!fs.existsSync(DATA_DIR)) {
   fs.mkdirSync(DATA_DIR, { recursive: true });
 }
 
-const DB_FILE = path.join(DATA_DIR, 'db.json');
+const DB_FILE = path.join(DATA_DIR, "db.json");
 
 // Types & Initial Data Seeds
 interface DatabaseSchema {
@@ -36,164 +36,178 @@ interface DatabaseSchema {
 
 const INITIAL_STUDENTS = [
   {
-    id: 'std_alex',
-    username: 'alex',
-    password: '123',
-    name: 'Alex Mercer',
-    avatar: '🦊',
-    grade: 'explorer',
-    classCode: 'MATH-808',
+    id: "std_alex",
+    username: "alex",
+    password: "123",
+    name: "Alex Mercer",
+    avatar: "🦊",
+    grade: "explorer",
+    classCode: "MATH-808",
     createdAt: new Date().toISOString(),
     assignedMinTable: 2,
     assignedMaxTable: 12,
     assignedCustomTables: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
     assignedTimePerQuestionSec: 8,
     assignedQuestionCount: 15,
-    assignedMode: 'multiplication',
+    assignedMode: "multiplication",
     profile: {
-      id: 'std_alex',
-      username: 'alex',
-      name: 'Alex Mercer',
-      avatar: '🦊',
-      grade: 'explorer',
-      classCode: 'MATH-808',
+      id: "std_alex",
+      username: "alex",
+      name: "Alex Mercer",
+      avatar: "🦊",
+      grade: "explorer",
+      classCode: "MATH-808",
       totalXP: 1420,
       level: 5,
-      title: 'Number Knight',
+      title: "Number Knight",
       streakDays: 4,
-      lastActiveDate: new Date().toISOString().split('T')[0],
+      lastActiveDate: new Date().toISOString().split("T")[0],
       soundEnabled: true,
-      unlockedBadges: ['first_dodging', 'perfect_ten', 'streak_5'],
+      unlockedBadges: ["first_dodging", "perfect_ten", "streak_5"],
       starsCollected: 18,
       assignedMinTable: 2,
       assignedMaxTable: 12,
       assignedCustomTables: [2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12],
       assignedTimePerQuestionSec: 8,
       assignedQuestionCount: 15,
-      assignedMode: 'multiplication',
+      assignedMode: "multiplication",
       testsCompleted: 12,
       avgAccuracy: 92,
       avgSpeedSec: 3.4,
     },
   },
   {
-    id: 'std_maya',
-    username: 'maya',
-    password: '123',
-    name: 'Maya Patel',
-    avatar: '🦉',
-    grade: 'champion',
-    classCode: 'MATH-808',
+    id: "std_maya",
+    username: "maya",
+    password: "123",
+    name: "Maya Patel",
+    avatar: "🦉",
+    grade: "champion",
+    classCode: "MATH-808",
     createdAt: new Date().toISOString(),
     assignedMinTable: 6,
     assignedMaxTable: 15,
     assignedCustomTables: [6, 7, 8, 9, 12, 13, 14, 15],
     assignedTimePerQuestionSec: 6,
     assignedQuestionCount: 20,
-    assignedMode: 'mixed',
+    assignedMode: "mixed",
     profile: {
-      id: 'std_maya',
-      username: 'maya',
-      name: 'Maya Patel',
-      avatar: '🦉',
-      grade: 'champion',
-      classCode: 'MATH-808',
+      id: "std_maya",
+      username: "maya",
+      name: "Maya Patel",
+      avatar: "🦉",
+      grade: "champion",
+      classCode: "MATH-808",
       totalXP: 2150,
       level: 7,
-      title: 'Calculation Champion',
+      title: "Calculation Champion",
       streakDays: 7,
-      lastActiveDate: new Date().toISOString().split('T')[0],
+      lastActiveDate: new Date().toISOString().split("T")[0],
       soundEnabled: true,
-      unlockedBadges: ['first_dodging', 'perfect_ten', 'streak_5', 'streak_10', 'speed_demon'],
+      unlockedBadges: [
+        "first_dodging",
+        "perfect_ten",
+        "streak_5",
+        "streak_10",
+        "speed_demon",
+      ],
       starsCollected: 24,
       assignedMinTable: 6,
       assignedMaxTable: 15,
       assignedCustomTables: [6, 7, 8, 9, 12, 13, 14, 15],
       assignedTimePerQuestionSec: 6,
       assignedQuestionCount: 20,
-      assignedMode: 'mixed',
+      assignedMode: "mixed",
       testsCompleted: 18,
       avgAccuracy: 96,
       avgSpeedSec: 2.8,
     },
   },
   {
-    id: 'std_liam',
-    username: 'liam',
-    password: '123',
-    name: 'Liam Chen',
-    avatar: '🚀',
-    grade: 'explorer',
-    classCode: 'MATH-808',
+    id: "std_liam",
+    username: "liam",
+    password: "123",
+    name: "Liam Chen",
+    avatar: "🚀",
+    grade: "explorer",
+    classCode: "MATH-808",
     createdAt: new Date().toISOString(),
     assignedMinTable: 2,
     assignedMaxTable: 10,
     assignedCustomTables: [2, 3, 4, 5, 6, 7, 8, 9, 10],
     assignedTimePerQuestionSec: 10,
     assignedQuestionCount: 10,
-    assignedMode: 'multiplication',
+    assignedMode: "multiplication",
     profile: {
-      id: 'std_liam',
-      username: 'liam',
-      name: 'Liam Chen',
-      avatar: '🚀',
-      grade: 'explorer',
-      classCode: 'MATH-808',
+      id: "std_liam",
+      username: "liam",
+      name: "Liam Chen",
+      avatar: "🚀",
+      grade: "explorer",
+      classCode: "MATH-808",
       totalXP: 980,
       level: 4,
-      title: 'Math Explorer',
+      title: "Math Explorer",
       streakDays: 2,
-      lastActiveDate: new Date().toISOString().split('T')[0],
+      lastActiveDate: new Date().toISOString().split("T")[0],
       soundEnabled: true,
-      unlockedBadges: ['first_dodging'],
+      unlockedBadges: ["first_dodging"],
       starsCollected: 12,
       assignedMinTable: 2,
       assignedMaxTable: 10,
       assignedCustomTables: [2, 3, 4, 5, 6, 7, 8, 9, 10],
       assignedTimePerQuestionSec: 10,
       assignedQuestionCount: 10,
-      assignedMode: 'multiplication',
+      assignedMode: "multiplication",
       testsCompleted: 8,
       avgAccuracy: 88,
       avgSpeedSec: 4.1,
     },
   },
   {
-    id: 'std_zara',
-    username: 'zara',
-    password: '123',
-    name: 'Zara Williams',
-    avatar: '🦁',
-    grade: 'master',
-    classCode: 'MATH-808',
+    id: "std_zara",
+    username: "zara",
+    password: "123",
+    name: "Zara Williams",
+    avatar: "🦁",
+    grade: "master",
+    classCode: "MATH-808",
     createdAt: new Date().toISOString(),
     assignedMinTable: 2,
     assignedMaxTable: 20,
     assignedCustomTables: [12, 13, 14, 15, 16, 17, 18, 19, 20],
     assignedTimePerQuestionSec: 5,
     assignedQuestionCount: 25,
-    assignedMode: 'mixed',
+    assignedMode: "mixed",
     profile: {
-      id: 'std_zara',
-      username: 'zara',
-      name: 'Zara Williams',
-      avatar: '🦁',
-      grade: 'master',
-      classCode: 'MATH-808',
+      id: "std_zara",
+      username: "zara",
+      name: "Zara Williams",
+      avatar: "🦁",
+      grade: "master",
+      classCode: "MATH-808",
       totalXP: 3450,
       level: 10,
-      title: 'Grandmaster Wizard',
+      title: "Grandmaster Wizard",
       streakDays: 14,
-      lastActiveDate: new Date().toISOString().split('T')[0],
+      lastActiveDate: new Date().toISOString().split("T")[0],
       soundEnabled: true,
-      unlockedBadges: ['first_dodging', 'perfect_ten', 'flawless_round', 'streak_5', 'streak_10', 'streak_15', 'lightning_reflexes'],
+      unlockedBadges: [
+        "first_dodging",
+        "perfect_ten",
+        "flawless_round",
+        "streak_5",
+        "streak_10",
+        "streak_15",
+        "lightning_reflexes",
+      ],
       starsCollected: 36,
       assignedMinTable: 2,
       assignedMaxTable: 20,
       assignedCustomTables: [12, 13, 14, 15, 16, 17, 18, 19, 20],
       assignedTimePerQuestionSec: 5,
       assignedQuestionCount: 25,
-      assignedMode: 'mixed',
+      assignedMode: "mixed",
       testsCompleted: 30,
       avgAccuracy: 98,
       avgSpeedSec: 1.9,
@@ -204,103 +218,105 @@ const INITIAL_STUDENTS = [
 // 10 Distinct Competitive Record-Holder Badges
 const COMPETITIVE_BADGES = [
   {
-    id: 'cheetah_speed',
-    title: 'Cheetah Sprint',
-    description: 'Fastest average time per question in a completed test (min 80% accuracy)',
-    iconName: 'Zap',
-    emoji: '🐆',
-    category: 'speed',
-    requirementDescription: 'Lowest seconds / question record',
+    id: "cheetah_speed",
+    title: "Cheetah Sprint",
+    description:
+      "Fastest average time per question in a completed test (min 80% accuracy)",
+    iconName: "Zap",
+    emoji: "🐆",
+    category: "speed",
+    requirementDescription: "Lowest seconds / question record",
     unlocked: false,
   },
   {
-    id: 'deadshot_accuracy',
-    title: 'Deadshot Sniper',
-    description: 'Highest test accuracy record across official dodging tests',
-    iconName: 'Target',
-    emoji: '🎯',
-    category: 'accuracy',
-    requirementDescription: 'Highest accuracy % record',
+    id: "deadshot_accuracy",
+    title: "Deadshot Sniper",
+    description: "Highest test accuracy record across official dodging tests",
+    iconName: "Target",
+    emoji: "🎯",
+    category: "accuracy",
+    requirementDescription: "Highest accuracy % record",
     unlocked: false,
   },
   {
-    id: 'apex_score',
-    title: 'Apex Grand Champion',
-    description: 'Highest single dodging test score achieved in the class',
-    iconName: 'Crown',
-    emoji: '👑',
-    category: 'score',
-    requirementDescription: 'Highest single test score record',
+    id: "apex_score",
+    title: "Apex Grand Champion",
+    description: "Highest single dodging test score achieved in the class",
+    iconName: "Crown",
+    emoji: "👑",
+    category: "score",
+    requirementDescription: "Highest single test score record",
     unlocked: false,
   },
   {
-    id: 'lightning_reaction',
-    title: 'Lightning Reaction',
-    description: 'Sub-1.5s ultra-speed response record on 10+ questions test',
-    iconName: 'Flame',
-    emoji: '⚡',
-    category: 'speed',
-    requirementDescription: 'Fastest reaction speed record',
+    id: "lightning_reaction",
+    title: "Lightning Reaction",
+    description: "Sub-1.5s ultra-speed response record on 10+ questions test",
+    iconName: "Flame",
+    emoji: "⚡",
+    category: "speed",
+    requirementDescription: "Fastest reaction speed record",
     unlocked: false,
   },
   {
-    id: 'streak_overlord',
-    title: 'Streak Overlord',
-    description: 'Longest active daily practice streak in the classroom',
-    iconName: 'Flame',
-    emoji: '🔥',
-    category: 'streak',
-    requirementDescription: 'Highest active daily streak record',
+    id: "streak_overlord",
+    title: "Streak Overlord",
+    description: "Longest active daily practice streak in the classroom",
+    iconName: "Flame",
+    emoji: "🔥",
+    category: "streak",
+    requirementDescription: "Highest active daily streak record",
     unlocked: false,
   },
   {
-    id: 'xp_titan',
-    title: 'XP Titan',
-    description: 'Highest total XP accumulated in the classroom',
-    iconName: 'Sparkles',
-    emoji: '💎',
-    category: 'score',
-    requirementDescription: 'Highest total XP record',
+    id: "xp_titan",
+    title: "XP Titan",
+    description: "Highest total XP accumulated in the classroom",
+    iconName: "Sparkles",
+    emoji: "💎",
+    category: "score",
+    requirementDescription: "Highest total XP record",
     unlocked: false,
   },
   {
-    id: 'iron_wall',
-    title: 'Iron Wall Flawless',
-    description: 'Most 100% perfect (10/10) test clears without a single error',
-    iconName: 'Award',
-    emoji: '🛡️',
-    category: 'accuracy',
-    requirementDescription: 'Most flawless 100% tests record',
+    id: "iron_wall",
+    title: "Iron Wall Flawless",
+    description: "Most 100% perfect (10/10) test clears without a single error",
+    iconName: "Award",
+    emoji: "🛡️",
+    category: "accuracy",
+    requirementDescription: "Most flawless 100% tests record",
     unlocked: false,
   },
   {
-    id: 'dodging_warlord',
-    title: 'Dodging Warlord',
-    description: 'Most official dodging tests completed overall',
-    iconName: 'Trophy',
-    emoji: '⚔️',
-    category: 'dedication',
-    requirementDescription: 'Most tests completed record',
+    id: "dodging_warlord",
+    title: "Dodging Warlord",
+    description: "Most official dodging tests completed overall",
+    iconName: "Trophy",
+    emoji: "⚔️",
+    category: "dedication",
+    requirementDescription: "Most tests completed record",
     unlocked: false,
   },
   {
-    id: 'supersonic_prodigy',
-    title: 'Supersonic Prodigy',
-    description: 'Fastest total test completion time with 90%+ accuracy',
-    iconName: 'Award',
-    emoji: '🚀',
-    category: 'speed',
-    requirementDescription: 'Lowest total test duration record',
+    id: "supersonic_prodigy",
+    title: "Supersonic Prodigy",
+    description: "Fastest total test completion time with 90%+ accuracy",
+    iconName: "Award",
+    emoji: "🚀",
+    category: "speed",
+    requirementDescription: "Lowest total test duration record",
     unlocked: false,
   },
   {
-    id: 'the_centurion',
-    title: 'The Centurion',
-    description: 'Most total math questions answered correctly across all tests',
-    iconName: 'Award',
-    emoji: '🌟',
-    category: 'dedication',
-    requirementDescription: 'Most math problems solved record',
+    id: "the_centurion",
+    title: "The Centurion",
+    description:
+      "Most total math questions answered correctly across all tests",
+    iconName: "Award",
+    emoji: "🌟",
+    category: "dedication",
+    requirementDescription: "Most math problems solved record",
     unlocked: false,
   },
 ];
@@ -313,27 +329,38 @@ function evaluateCompetitiveBadges(students: any[], attempts: any[]) {
 
   const studentMetrics = students.map((s) => {
     const sAttempts = attempts.filter((a) => a.studentId === s.id);
-    
+
     // 1. Cheetah speed: lowest avgTimePerQuestionSec on tests with >= 80% accuracy
-    const validSpeedAttempts = sAttempts.filter((a) => (a.accuracy || 0) >= 80 && (a.avgTimePerQuestionSec || 0) > 0);
-    const bestSpeed = validSpeedAttempts.length > 0
-      ? Math.min(...validSpeedAttempts.map((a) => a.avgTimePerQuestionSec))
-      : (s.profile.avgSpeedSec > 0 ? s.profile.avgSpeedSec : 999);
+    const validSpeedAttempts = sAttempts.filter(
+      (a) => (a.accuracy || 0) >= 80 && (a.avgTimePerQuestionSec || 0) > 0,
+    );
+    const bestSpeed =
+      validSpeedAttempts.length > 0
+        ? Math.min(...validSpeedAttempts.map((a) => a.avgTimePerQuestionSec))
+        : s.profile.avgSpeedSec > 0
+          ? s.profile.avgSpeedSec
+          : 999;
 
     // 2. Deadshot accuracy: highest average accuracy
-    const avgAccuracy = sAttempts.length > 0
-      ? Math.round(sAttempts.reduce((sum, a) => sum + (a.accuracy || 0), 0) / sAttempts.length)
-      : (s.profile.avgAccuracy || 0);
+    const avgAccuracy =
+      sAttempts.length > 0
+        ? Math.round(
+            sAttempts.reduce((sum, a) => sum + (a.accuracy || 0), 0) /
+              sAttempts.length,
+          )
+        : s.profile.avgAccuracy || 0;
 
     // 3. Apex score: highest single test score
-    const bestScore = sAttempts.length > 0
-      ? Math.max(...sAttempts.map((a) => a.score || 0))
-      : Math.max(0, s.profile.totalXP || 0);
+    const bestScore =
+      sAttempts.length > 0
+        ? Math.max(...sAttempts.map((a) => a.score || 0))
+        : Math.max(0, s.profile.totalXP || 0);
 
     // 4. Lightning reaction: lowest avg time on any test
-    const minTestTime = sAttempts.length > 0
-      ? Math.min(...sAttempts.map((a) => a.avgTimePerQuestionSec || 999))
-      : (s.profile.avgSpeedSec || 999);
+    const minTestTime =
+      sAttempts.length > 0
+        ? Math.min(...sAttempts.map((a) => a.avgTimePerQuestionSec || 999))
+        : s.profile.avgSpeedSec || 999;
 
     // 5. Streak overlord: highest streakDays
     const streak = s.profile.streakDays || 0;
@@ -342,19 +369,26 @@ function evaluateCompetitiveBadges(students: any[], attempts: any[]) {
     const totalXP = s.profile.totalXP || 0;
 
     // 7. Iron wall: count of 100% accuracy tests with >= 10 questions
-    const perfectTests = sAttempts.filter((a) => a.accuracy === 100 && a.totalQuestions >= 10).length;
+    const perfectTests = sAttempts.filter(
+      (a) => a.accuracy === 100 && a.totalQuestions >= 10,
+    ).length;
 
     // 8. Dodging warlord: total tests completed
     const testsCount = sAttempts.length || s.profile.testsCompleted || 0;
 
     // 9. Supersonic prodigy: lowest total test completion time with >= 90% accuracy
-    const highAccAttempts = sAttempts.filter((a) => (a.accuracy || 0) >= 90 && (a.totalTimeSpentSec || 0) > 0);
-    const bestTotalTime = highAccAttempts.length > 0
-      ? Math.min(...highAccAttempts.map((a) => a.totalTimeSpentSec))
-      : 9999;
+    const highAccAttempts = sAttempts.filter(
+      (a) => (a.accuracy || 0) >= 90 && (a.totalTimeSpentSec || 0) > 0,
+    );
+    const bestTotalTime =
+      highAccAttempts.length > 0
+        ? Math.min(...highAccAttempts.map((a) => a.totalTimeSpentSec))
+        : 9999;
 
     // 10. The Centurion: total correct questions
-    const totalCorrect = sAttempts.reduce((sum, a) => sum + (a.correctQuestions || 0), 0) || ((s.profile.testsCompleted || 0) * 10);
+    const totalCorrect =
+      sAttempts.reduce((sum, a) => sum + (a.correctQuestions || 0), 0) ||
+      (s.profile.testsCompleted || 0) * 10;
 
     return {
       student: s,
@@ -374,65 +408,97 @@ function evaluateCompetitiveBadges(students: any[], attempts: any[]) {
   const evaluatedBadges = COMPETITIVE_BADGES.map((badge) => {
     let holder: { student: any; recordDisplay: string } | null = null;
 
-    if (badge.id === 'cheetah_speed') {
+    if (badge.id === "cheetah_speed") {
       const candidates = studentMetrics.filter((m) => m.bestSpeed < 900);
       if (candidates.length > 0) {
         candidates.sort((a, b) => a.bestSpeed - b.bestSpeed);
-        holder = { student: candidates[0].student, recordDisplay: `${candidates[0].bestSpeed.toFixed(1)}s / question` };
+        holder = {
+          student: candidates[0].student,
+          recordDisplay: `${candidates[0].bestSpeed.toFixed(1)}s / question`,
+        };
       }
-    } else if (badge.id === 'deadshot_accuracy') {
+    } else if (badge.id === "deadshot_accuracy") {
       const candidates = studentMetrics.filter((m) => m.avgAccuracy > 0);
       if (candidates.length > 0) {
-        candidates.sort((a, b) => b.avgAccuracy - a.avgAccuracy || b.bestScore - a.bestScore);
-        holder = { student: candidates[0].student, recordDisplay: `${candidates[0].avgAccuracy}% Accuracy` };
+        candidates.sort(
+          (a, b) => b.avgAccuracy - a.avgAccuracy || b.bestScore - a.bestScore,
+        );
+        holder = {
+          student: candidates[0].student,
+          recordDisplay: `${candidates[0].avgAccuracy}% Accuracy`,
+        };
       }
-    } else if (badge.id === 'apex_score') {
+    } else if (badge.id === "apex_score") {
       const candidates = studentMetrics.filter((m) => m.bestScore > 0);
       if (candidates.length > 0) {
         candidates.sort((a, b) => b.bestScore - a.bestScore);
-        holder = { student: candidates[0].student, recordDisplay: `${candidates[0].bestScore} pts Record` };
+        holder = {
+          student: candidates[0].student,
+          recordDisplay: `${candidates[0].bestScore} pts Record`,
+        };
       }
-    } else if (badge.id === 'lightning_reaction') {
+    } else if (badge.id === "lightning_reaction") {
       const candidates = studentMetrics.filter((m) => m.minTestTime < 900);
       if (candidates.length > 0) {
         candidates.sort((a, b) => a.minTestTime - b.minTestTime);
-        holder = { student: candidates[0].student, recordDisplay: `${candidates[0].minTestTime.toFixed(1)}s blitz reaction` };
+        holder = {
+          student: candidates[0].student,
+          recordDisplay: `${candidates[0].minTestTime.toFixed(1)}s blitz reaction`,
+        };
       }
-    } else if (badge.id === 'streak_overlord') {
+    } else if (badge.id === "streak_overlord") {
       const candidates = studentMetrics.filter((m) => m.streak > 0);
       if (candidates.length > 0) {
         candidates.sort((a, b) => b.streak - a.streak);
-        holder = { student: candidates[0].student, recordDisplay: `${candidates[0].streak} Day Streak` };
+        holder = {
+          student: candidates[0].student,
+          recordDisplay: `${candidates[0].streak} Day Streak`,
+        };
       }
-    } else if (badge.id === 'xp_titan') {
+    } else if (badge.id === "xp_titan") {
       const candidates = studentMetrics.filter((m) => m.totalXP > 0);
       if (candidates.length > 0) {
         candidates.sort((a, b) => b.totalXP - a.totalXP);
-        holder = { student: candidates[0].student, recordDisplay: `${candidates[0].totalXP.toLocaleString()} XP` };
+        holder = {
+          student: candidates[0].student,
+          recordDisplay: `${candidates[0].totalXP.toLocaleString()} XP`,
+        };
       }
-    } else if (badge.id === 'iron_wall') {
+    } else if (badge.id === "iron_wall") {
       const candidates = studentMetrics.filter((m) => m.perfectTests > 0);
       if (candidates.length > 0) {
         candidates.sort((a, b) => b.perfectTests - a.perfectTests);
-        holder = { student: candidates[0].student, recordDisplay: `${candidates[0].perfectTests} Flawless 10/10s` };
+        holder = {
+          student: candidates[0].student,
+          recordDisplay: `${candidates[0].perfectTests} Flawless 10/10s`,
+        };
       }
-    } else if (badge.id === 'dodging_warlord') {
+    } else if (badge.id === "dodging_warlord") {
       const candidates = studentMetrics.filter((m) => m.testsCount > 0);
       if (candidates.length > 0) {
         candidates.sort((a, b) => b.testsCount - a.testsCount);
-        holder = { student: candidates[0].student, recordDisplay: `${candidates[0].testsCount} Tests Completed` };
+        holder = {
+          student: candidates[0].student,
+          recordDisplay: `${candidates[0].testsCount} Tests Completed`,
+        };
       }
-    } else if (badge.id === 'supersonic_prodigy') {
+    } else if (badge.id === "supersonic_prodigy") {
       const candidates = studentMetrics.filter((m) => m.bestTotalTime < 9000);
       if (candidates.length > 0) {
         candidates.sort((a, b) => a.bestTotalTime - b.bestTotalTime);
-        holder = { student: candidates[0].student, recordDisplay: `${candidates[0].bestTotalTime.toFixed(1)}s Total Duration` };
+        holder = {
+          student: candidates[0].student,
+          recordDisplay: `${candidates[0].bestTotalTime.toFixed(1)}s Total Duration`,
+        };
       }
-    } else if (badge.id === 'the_centurion') {
+    } else if (badge.id === "the_centurion") {
       const candidates = studentMetrics.filter((m) => m.totalCorrect > 0);
       if (candidates.length > 0) {
         candidates.sort((a, b) => b.totalCorrect - a.totalCorrect);
-        holder = { student: candidates[0].student, recordDisplay: `${candidates[0].totalCorrect} Problems Solved` };
+        holder = {
+          student: candidates[0].student,
+          recordDisplay: `${candidates[0].totalCorrect} Problems Solved`,
+        };
       }
     }
 
@@ -450,9 +516,9 @@ function evaluateCompetitiveBadges(students: any[], attempts: any[]) {
     return {
       ...badge,
       currentHolderId: null,
-      currentHolderName: 'Unclaimed Record',
-      currentHolderAvatar: '👑',
-      recordValueDisplay: 'Set first record!',
+      currentHolderName: "Unclaimed Record",
+      currentHolderAvatar: "👑",
+      recordValueDisplay: "Set first record!",
     };
   });
 
@@ -467,9 +533,9 @@ function evaluateCompetitiveBadges(students: any[], attempts: any[]) {
 // Load Database
 let db: DatabaseSchema = {
   admin: {
-    username: 'abrash',
-    password: '123oPm78',
-    name: 'Abrash (Educator Admin)',
+    username: "abrash",
+    password: "123oPm78",
+    name: "Abrash (Educator Admin)",
   },
   students: INITIAL_STUDENTS,
   attempts: [],
@@ -481,33 +547,58 @@ let db: DatabaseSchema = {
 function loadDatabase(): DatabaseSchema {
   try {
     if (fs.existsSync(DB_FILE)) {
-      const data = fs.readFileSync(DB_FILE, 'utf-8');
+      const data = fs.readFileSync(DB_FILE, "utf-8");
       const parsed = JSON.parse(data);
       db = {
         admin: parsed.admin || db.admin,
-        students: Array.isArray(parsed.students) && parsed.students.length > 0 ? parsed.students : INITIAL_STUDENTS,
+        students:
+          Array.isArray(parsed.students) && parsed.students.length > 0
+            ? parsed.students
+            : INITIAL_STUDENTS,
         attempts: Array.isArray(parsed.attempts) ? parsed.attempts : [],
         mistakes: Array.isArray(parsed.mistakes) ? parsed.mistakes : [],
-        questStages: Array.isArray(parsed.questStages) ? parsed.questStages : [],
+        questStages: Array.isArray(parsed.questStages)
+          ? parsed.questStages
+          : [],
         badges: Array.isArray(parsed.badges) ? parsed.badges : [],
       };
     } else {
       saveDatabase();
     }
   } catch (err) {
-    console.error('Error loading database:', err);
+    console.error("Error loading database:", err);
   }
   return db;
 }
 
 function saveDatabase() {
   try {
-    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf-8');
-    broadcastSSE({ type: 'DATA_SYNC', timestamp: Date.now() });
+    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf-8");
+    broadcastSSE({ type: "DATA_SYNC", timestamp: Date.now() });
   } catch (err) {
-    console.error('Error saving database:', err);
+    console.error("Error saving database:", err);
   }
 }
+
+// Basic CORS support controlled by ALLOWED_ORIGINS env (comma-separated)
+const ALLOWED_ORIGINS = process.env.ALLOWED_ORIGINS
+  ? process.env.ALLOWED_ORIGINS.split(",")
+  : ["*"];
+
+app.use((req, res, next) => {
+  const origin = req.headers.origin as string | undefined;
+  if (ALLOWED_ORIGINS.includes("*")) {
+    res.setHeader("Access-Control-Allow-Origin", origin || "*");
+  } else if (origin && ALLOWED_ORIGINS.includes(origin)) {
+    res.setHeader("Access-Control-Allow-Origin", origin);
+  }
+  res.setHeader("Access-Control-Allow-Methods", "GET,POST,PUT,DELETE,OPTIONS");
+  res.setHeader("Access-Control-Allow-Headers", "Content-Type,Authorization");
+  if (req.method === "OPTIONS") {
+    return res.sendStatus(204);
+  }
+  next();
+});
 
 // SSE (Server-Sent Events) for real-time live synchronization across devices
 const sseClients: express.Response[] = [];
@@ -531,16 +622,18 @@ loadDatabase();
 // -------------------------------------------------------------
 
 // SSE Subscription
-app.get('/api/events', (req, res) => {
-  res.setHeader('Content-Type', 'text/event-stream');
-  res.setHeader('Cache-Control', 'no-cache');
-  res.setHeader('Connection', 'keep-alive');
+app.get("/api/events", (req, res) => {
+  res.setHeader("Content-Type", "text/event-stream");
+  res.setHeader("Cache-Control", "no-cache");
+  res.setHeader("Connection", "keep-alive");
   res.flushHeaders();
 
   sseClients.push(res);
-  res.write(`data: ${JSON.stringify({ type: 'CONNECTED', timestamp: Date.now() })}\n\n`);
+  res.write(
+    `data: ${JSON.stringify({ type: "CONNECTED", timestamp: Date.now() })}\n\n`,
+  );
 
-  req.on('close', () => {
+  req.on("close", () => {
     const index = sseClients.indexOf(res);
     if (index !== -1) {
       sseClients.splice(index, 1);
@@ -549,15 +642,21 @@ app.get('/api/events', (req, res) => {
 });
 
 // Health check
-app.get('/api/health', (req, res) => {
-  res.json({ status: 'ok', studentsCount: db.students.length, attemptsCount: db.attempts.length });
+app.get("/api/health", (req, res) => {
+  res.json({
+    status: "ok",
+    studentsCount: db.students.length,
+    attemptsCount: db.attempts.length,
+  });
 });
 
 // Authentication Endpoint
-app.post('/api/auth/login', (req, res) => {
+app.post("/api/auth/login", (req, res) => {
   const { username, password } = req.body;
   if (!username || !password) {
-    return res.status(400).json({ success: false, error: 'Username and password are required' });
+    return res
+      .status(400)
+      .json({ success: false, error: "Username and password are required" });
   }
 
   const cleanUser = String(username).trim().toLowerCase();
@@ -565,12 +664,12 @@ app.post('/api/auth/login', (req, res) => {
 
   // Check Admin / Teacher
   if (
-    (cleanUser === db.admin.username.toLowerCase() || cleanUser === 'admin') &&
-    (cleanPass === db.admin.password || cleanPass === '123oPm78')
+    (cleanUser === db.admin.username.toLowerCase() || cleanUser === "admin") &&
+    (cleanPass === db.admin.password || cleanPass === "123oPm78")
   ) {
     return res.json({
       success: true,
-      role: 'admin',
+      role: "admin",
       user: {
         username: db.admin.username,
         name: db.admin.name,
@@ -580,75 +679,93 @@ app.post('/api/auth/login', (req, res) => {
 
   // Check Student Account
   const student = db.students.find(
-    (s) => s.username.toLowerCase() === cleanUser && String(s.password).trim() === cleanPass
+    (s) =>
+      s.username.toLowerCase() === cleanUser &&
+      String(s.password).trim() === cleanPass,
   );
 
   if (student) {
     return res.json({
       success: true,
-      role: 'student',
+      role: "student",
       student: student,
     });
   }
 
   return res.status(401).json({
     success: false,
-    error: 'Invalid username or password. Please check your credentials or ask Teacher Abrash.',
+    error:
+      "Invalid username or password. Please check your credentials or ask Teacher Abrash.",
   });
 });
 
 // Get all students
-app.get('/api/students', (req, res) => {
+app.get("/api/students", (req, res) => {
   res.json({ success: true, students: db.students });
 });
 
 // Create student
-app.post('/api/students', (req, res) => {
+app.post("/api/students", (req, res) => {
   const data = req.body;
   if (!data.name || !data.username || !data.password) {
-    return res.status(400).json({ success: false, error: 'Name, username, and password are required' });
+    return res.status(400).json({
+      success: false,
+      error: "Name, username, and password are required",
+    });
   }
 
   const cleanUser = String(data.username).trim().toLowerCase();
-  const existing = db.students.find((s) => s.username.toLowerCase() === cleanUser);
+  const existing = db.students.find(
+    (s) => s.username.toLowerCase() === cleanUser,
+  );
   if (existing) {
-    return res.status(400).json({ success: false, error: `Username "${cleanUser}" already exists.` });
+    return res.status(400).json({
+      success: false,
+      error: `Username "${cleanUser}" already exists.`,
+    });
   }
 
-  const id = data.id || `std_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  const id =
+    data.id ||
+    `std_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   const assignedMin = Number(data.assignedMinTable) || 2;
   const assignedMax = Number(data.assignedMaxTable) || 12;
-  const customTables = Array.isArray(data.assignedCustomTables) && data.assignedCustomTables.length > 0
-    ? data.assignedCustomTables
-    : Array.from({ length: assignedMax - assignedMin + 1 }, (_, i) => assignedMin + i);
+  const customTables =
+    Array.isArray(data.assignedCustomTables) &&
+    data.assignedCustomTables.length > 0
+      ? data.assignedCustomTables
+      : Array.from(
+          { length: assignedMax - assignedMin + 1 },
+          (_, i) => assignedMin + i,
+        );
 
   const newStudent = {
     id,
     username: cleanUser,
     password: String(data.password).trim(),
     name: data.name.trim(),
-    avatar: data.avatar || '🎓',
-    grade: data.grade || 'explorer',
-    classCode: (data.classCode || 'MATH-808').toUpperCase(),
+    avatar: data.avatar || "🎓",
+    grade: data.grade || "explorer",
+    classCode: (data.classCode || "MATH-808").toUpperCase(),
     createdAt: new Date().toISOString(),
     assignedMinTable: assignedMin,
     assignedMaxTable: assignedMax,
     assignedCustomTables: customTables,
     assignedTimePerQuestionSec: Number(data.assignedTimePerQuestionSec) || 8,
     assignedQuestionCount: Number(data.assignedQuestionCount) || 15,
-    assignedMode: data.assignedMode || 'multiplication',
+    assignedMode: data.assignedMode || "multiplication",
     profile: {
       id,
       username: cleanUser,
       name: data.name.trim(),
-      avatar: data.avatar || '🎓',
-      grade: data.grade || 'explorer',
-      classCode: (data.classCode || 'MATH-808').toUpperCase(),
+      avatar: data.avatar || "🎓",
+      grade: data.grade || "explorer",
+      classCode: (data.classCode || "MATH-808").toUpperCase(),
       totalXP: 0,
       level: 1,
-      title: 'Math Initiate',
+      title: "Math Initiate",
       streakDays: 0,
-      lastActiveDate: '',
+      lastActiveDate: "",
       soundEnabled: true,
       unlockedBadges: [],
       starsCollected: 0,
@@ -657,7 +774,7 @@ app.post('/api/students', (req, res) => {
       assignedCustomTables: customTables,
       assignedTimePerQuestionSec: Number(data.assignedTimePerQuestionSec) || 8,
       assignedQuestionCount: Number(data.assignedQuestionCount) || 15,
-      assignedMode: data.assignedMode || 'multiplication',
+      assignedMode: data.assignedMode || "multiplication",
       testsCompleted: 0,
       avgAccuracy: 0,
       avgSpeedSec: 0,
@@ -671,11 +788,11 @@ app.post('/api/students', (req, res) => {
 });
 
 // Update student
-app.put('/api/students/:id', (req, res) => {
+app.put("/api/students/:id", (req, res) => {
   const { id } = req.params;
   const index = db.students.findIndex((s) => s.id === id);
   if (index === -1) {
-    return res.status(404).json({ success: false, error: 'Student not found' });
+    return res.status(404).json({ success: false, error: "Student not found" });
   }
 
   const existing = db.students[index];
@@ -689,14 +806,22 @@ app.put('/api/students/:id', (req, res) => {
       ...existing.profile,
       ...(update.profile || {}),
       name: update.name || update.profile?.name || existing.profile.name,
-      avatar: update.avatar || update.profile?.avatar || existing.profile.avatar,
+      avatar:
+        update.avatar || update.profile?.avatar || existing.profile.avatar,
       grade: update.grade || update.profile?.grade || existing.profile.grade,
-      classCode: update.classCode || update.profile?.classCode || existing.profile.classCode,
+      classCode:
+        update.classCode ||
+        update.profile?.classCode ||
+        existing.profile.classCode,
       assignedMinTable: update.assignedMinTable ?? existing.assignedMinTable,
       assignedMaxTable: update.assignedMaxTable ?? existing.assignedMaxTable,
-      assignedCustomTables: update.assignedCustomTables ?? existing.assignedCustomTables,
-      assignedTimePerQuestionSec: update.assignedTimePerQuestionSec ?? existing.assignedTimePerQuestionSec,
-      assignedQuestionCount: update.assignedQuestionCount ?? existing.assignedQuestionCount,
+      assignedCustomTables:
+        update.assignedCustomTables ?? existing.assignedCustomTables,
+      assignedTimePerQuestionSec:
+        update.assignedTimePerQuestionSec ??
+        existing.assignedTimePerQuestionSec,
+      assignedQuestionCount:
+        update.assignedQuestionCount ?? existing.assignedQuestionCount,
       assignedMode: update.assignedMode ?? existing.assignedMode,
     },
   };
@@ -708,7 +833,7 @@ app.put('/api/students/:id', (req, res) => {
 });
 
 // Delete student
-app.delete('/api/students/:id', (req, res) => {
+app.delete("/api/students/:id", (req, res) => {
   const { id } = req.params;
   db.students = db.students.filter((s) => s.id !== id);
   db.attempts = db.attempts.filter((a) => a.studentId !== id);
@@ -719,33 +844,40 @@ app.delete('/api/students/:id', (req, res) => {
 });
 
 // Reset student's daily test quota
-app.post('/api/students/:id/reset-daily', (req, res) => {
+app.post("/api/students/:id/reset-daily", (req, res) => {
   const { id } = req.params;
-  const todayStr = new Date().toISOString().split('T')[0];
+  const todayStr = new Date().toISOString().split("T")[0];
 
   // Remove attempts from today for this student
   db.attempts = db.attempts.filter((a) => {
     if (a.studentId !== id) return true;
-    const aDate = (a.timestamp || '').split('T')[0];
+    const aDate = (a.timestamp || "").split("T")[0];
     return aDate !== todayStr;
   });
 
   saveDatabase();
-  res.json({ success: true, message: "Reset student's daily test quota for today." });
+  res.json({
+    success: true,
+    message: "Reset student's daily test quota for today.",
+  });
 });
 
 // Record test attempt (Real-time scoring & calculations)
-app.post('/api/attempts', (req, res) => {
+app.post("/api/attempts", (req, res) => {
   const attempt = req.body;
   if (!attempt || !attempt.studentId) {
-    return res.status(400).json({ success: false, error: 'Valid attempt data required' });
+    return res
+      .status(400)
+      .json({ success: false, error: "Valid attempt data required" });
   }
 
   const studentIndex = db.students.findIndex((s) => s.id === attempt.studentId);
   const now = new Date();
-  const todayStr = now.toISOString().split('T')[0];
+  const todayStr = now.toISOString().split("T")[0];
 
-  attempt.id = attempt.id || `att_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  attempt.id =
+    attempt.id ||
+    `att_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
   attempt.timestamp = attempt.timestamp || now.toISOString();
   attempt.isSynced = true;
 
@@ -754,16 +886,26 @@ app.post('/api/attempts', (req, res) => {
   // Recalculate student statistics in real-time
   if (studentIndex !== -1) {
     const student = db.students[studentIndex];
-    const studentAttempts = db.attempts.filter((a) => a.studentId === student.id);
+    const studentAttempts = db.attempts.filter(
+      (a) => a.studentId === student.id,
+    );
 
     const totalTests = studentAttempts.length;
-    const totalAcc = studentAttempts.reduce((sum, a) => sum + (Number(a.accuracy) || 0), 0);
+    const totalAcc = studentAttempts.reduce(
+      (sum, a) => sum + (Number(a.accuracy) || 0),
+      0,
+    );
     const avgAcc = totalTests > 0 ? Math.round(totalAcc / totalTests) : 0;
 
-    const totalSpeed = studentAttempts.reduce((sum, a) => sum + (Number(a.avgTimePerQuestionSec) || 0), 0);
-    const avgSpeed = totalTests > 0 ? Number((totalSpeed / totalTests).toFixed(1)) : 0;
+    const totalSpeed = studentAttempts.reduce(
+      (sum, a) => sum + (Number(a.avgTimePerQuestionSec) || 0),
+      0,
+    );
+    const avgSpeed =
+      totalTests > 0 ? Number((totalSpeed / totalTests).toFixed(1)) : 0;
 
-    const totalXP = (student.profile.totalXP || 0) + (Number(attempt.xpGained) || 50);
+    const totalXP =
+      (student.profile.totalXP || 0) + (Number(attempt.xpGained) || 50);
     const newLevel = Math.max(1, Math.floor(Math.sqrt(totalXP / 100)) + 1);
 
     // Calculate streak
@@ -771,7 +913,7 @@ app.post('/api/attempts', (req, res) => {
     if (student.profile.lastActiveDate !== todayStr) {
       const yesterday = new Date(now);
       yesterday.setDate(yesterday.getDate() - 1);
-      const yesterdayStr = yesterday.toISOString().split('T')[0];
+      const yesterdayStr = yesterday.toISOString().split("T")[0];
 
       if (student.profile.lastActiveDate === yesterdayStr) {
         streak += 1;
@@ -781,16 +923,16 @@ app.post('/api/attempts', (req, res) => {
     }
 
     const TITLES = [
-      'Math Initiate',
-      'Number Apprentice',
-      'Table Trainee',
-      'Math Explorer',
-      'Number Knight',
-      'Speed Solver',
-      'Calculation Champion',
-      'Algebra Ace',
-      'Matrix Magician',
-      'Grandmaster Wizard',
+      "Math Initiate",
+      "Number Apprentice",
+      "Table Trainee",
+      "Math Explorer",
+      "Number Knight",
+      "Speed Solver",
+      "Calculation Champion",
+      "Algebra Ace",
+      "Matrix Magician",
+      "Grandmaster Wizard",
     ];
     const newTitle = TITLES[Math.min(newLevel - 1, TITLES.length - 1)];
 
@@ -820,23 +962,25 @@ app.post('/api/attempts', (req, res) => {
 });
 
 // Get attempts
-app.get('/api/attempts', (req, res) => {
+app.get("/api/attempts", (req, res) => {
   const { studentId } = req.query;
   if (studentId) {
-    const studentAttempts = db.attempts.filter((a) => a.studentId === String(studentId));
+    const studentAttempts = db.attempts.filter(
+      (a) => a.studentId === String(studentId),
+    );
     return res.json({ success: true, attempts: studentAttempts });
   }
   res.json({ success: true, attempts: db.attempts });
 });
 
 // Badges - 10 Competitive record holders
-app.get('/api/badges', (req, res) => {
+app.get("/api/badges", (req, res) => {
   const badges = evaluateCompetitiveBadges(db.students, db.attempts);
   res.json({ success: true, badges });
 });
 
 // Leaderboard - Ranked strictly by Dodging Test Score (blitzHighScore)
-app.get('/api/leaderboard', (req, res) => {
+app.get("/api/leaderboard", (req, res) => {
   const { classCode } = req.query;
 
   // Ensure competitive badges are evaluated
@@ -844,16 +988,29 @@ app.get('/api/leaderboard', (req, res) => {
 
   let list = db.students.map((s) => {
     const attempts = db.attempts.filter((a) => a.studentId === s.id);
-    const avgAcc = attempts.length > 0
-      ? Math.round(attempts.reduce((sum, a) => sum + (a.accuracy || 0), 0) / attempts.length)
-      : s.profile.avgAccuracy || 0;
-    const avgSpeed = attempts.length > 0
-      ? Number((attempts.reduce((sum, a) => sum + (a.avgTimePerQuestionSec || 0), 0) / attempts.length).toFixed(1))
-      : s.profile.avgSpeedSec || 0;
+    const avgAcc =
+      attempts.length > 0
+        ? Math.round(
+            attempts.reduce((sum, a) => sum + (a.accuracy || 0), 0) /
+              attempts.length,
+          )
+        : s.profile.avgAccuracy || 0;
+    const avgSpeed =
+      attempts.length > 0
+        ? Number(
+            (
+              attempts.reduce(
+                (sum, a) => sum + (a.avgTimePerQuestionSec || 0),
+                0,
+              ) / attempts.length
+            ).toFixed(1),
+          )
+        : s.profile.avgSpeedSec || 0;
 
-    const highestTestScore = attempts.length > 0
-      ? Math.max(...attempts.map((a) => Number(a.score) || 0))
-      : 0;
+    const highestTestScore =
+      attempts.length > 0
+        ? Math.max(...attempts.map((a) => Number(a.score) || 0))
+        : 0;
 
     return {
       id: s.id,
@@ -874,7 +1031,7 @@ app.get('/api/leaderboard', (req, res) => {
     };
   });
 
-  if (classCode && classCode !== 'all') {
+  if (classCode && classCode !== "all") {
     const code = String(classCode).trim().toUpperCase();
     list = list.filter((item) => item.classCode.toUpperCase() === code);
   }
@@ -887,7 +1044,11 @@ app.get('/api/leaderboard', (req, res) => {
     if (b.accuracy !== a.accuracy) {
       return b.accuracy - a.accuracy;
     }
-    if (a.avgSpeedSec !== b.avgSpeedSec && a.avgSpeedSec > 0 && b.avgSpeedSec > 0) {
+    if (
+      a.avgSpeedSec !== b.avgSpeedSec &&
+      a.avgSpeedSec > 0 &&
+      b.avgSpeedSec > 0
+    ) {
       return a.avgSpeedSec - b.avgSpeedSec; // Faster average speed ranks higher
     }
     return b.totalXP - a.totalXP;
@@ -899,15 +1060,18 @@ app.get('/api/leaderboard', (req, res) => {
 });
 
 // Mistakes API
-app.get('/api/mistakes', (req, res) => {
+app.get("/api/mistakes", (req, res) => {
   const { studentId } = req.query;
   if (studentId) {
-    return res.json({ success: true, mistakes: db.mistakes.filter((m) => m.studentId === studentId) });
+    return res.json({
+      success: true,
+      mistakes: db.mistakes.filter((m) => m.studentId === studentId),
+    });
   }
   res.json({ success: true, mistakes: db.mistakes });
 });
 
-app.post('/api/mistakes', (req, res) => {
+app.post("/api/mistakes", (req, res) => {
   const { mistakes } = req.body;
   if (Array.isArray(mistakes)) {
     for (const m of mistakes) {
@@ -924,12 +1088,12 @@ app.post('/api/mistakes', (req, res) => {
 });
 
 // Admin Reset All
-app.post('/api/admin/reset-database', (req, res) => {
+app.post("/api/admin/reset-database", (req, res) => {
   db = {
     admin: {
-      username: 'abrash',
-      password: '123oPm78',
-      name: 'Abrash (Educator Admin)',
+      username: "abrash",
+      password: "123oPm78",
+      name: "Abrash (Educator Admin)",
     },
     students: INITIAL_STUDENTS,
     attempts: [],
@@ -938,29 +1102,34 @@ app.post('/api/admin/reset-database', (req, res) => {
     badges: [],
   };
   saveDatabase();
-  res.json({ success: true, message: 'Database reset to initial master seed.' });
+  res.json({
+    success: true,
+    message: "Database reset to initial master seed.",
+  });
 });
 
 // -------------------------------------------------------------
 // Vite Middleware / Static Asset Serving
 // -------------------------------------------------------------
 async function startServer() {
-  if (process.env.NODE_ENV !== 'production') {
+  if (process.env.NODE_ENV !== "production") {
     const vite = await createViteServer({
       server: { middlewareMode: true },
-      appType: 'spa',
+      appType: "spa",
     });
     app.use(vite.middlewares);
   } else {
-    const distPath = path.join(process.cwd(), 'dist');
+    const distPath = path.join(process.cwd(), "dist");
     app.use(express.static(distPath));
-    app.get('*', (req, res) => {
-      res.sendFile(path.join(distPath, 'index.html'));
+    app.get("*", (req, res) => {
+      res.sendFile(path.join(distPath, "index.html"));
     });
   }
 
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`⚡ Math Masters full-stack server running on http://0.0.0.0:${PORT}`);
+  app.listen(PORT, "0.0.0.0", () => {
+    console.log(
+      `⚡ Math Masters full-stack server running on http://0.0.0.0:${PORT}`,
+    );
   });
 }
 
