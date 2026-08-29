@@ -10,6 +10,18 @@ const supabase =
     ? createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY)
     : null;
 
+// Diagnostic (safe): log whether Supabase client was constructed (do NOT log keys)
+try {
+  // eslint-disable-next-line no-console
+  console.log(
+    `[api/auth] module loaded: supabaseClient=${Boolean(supabase)} envSupabase=${Boolean(
+      SUPABASE_URL && SUPABASE_SERVICE_KEY,
+    )}`,
+  );
+} catch (e) {
+  // ignore
+}
+
 export default async function handler(req: VercelRequest, res: VercelResponse) {
   try {
     if (req.method !== "POST")

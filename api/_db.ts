@@ -1,6 +1,6 @@
 import { createClient } from "@supabase/supabase-js";
-import fs from "fs";
-import path from "path";
+// `fs` and `path` are only needed for local (dev) mode. Lazy-load them
+// to avoid importing Node built-ins at module load time in restricted runtimes.
 
 type AnyObject = Record<string, any>;
 
@@ -10,8 +10,31 @@ const SUPABASE_SERVICE_KEY =
 let supabase: any = null;
 let useSupabase = false;
 if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
-  supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
-  useSupabase = true;
+  try {
+    supabase = createClient(SUPABASE_URL, SUPABASE_SERVICE_KEY);
+    useSupabase = true;
+  } catch (e) {
+    // Do not log secrets; only log that initialization failed
+    // eslint-disable-next-line no-console
+    console.error(
+      "[api/_db] Supabase client initialization failed:",
+      (e as Error).message || String(e),
+    );
+    useSupabase = false;
+    supabase = null;
+  }
+}
+
+// Diagnostic (safe): expose runtime config flags without secrets
+try {
+  // eslint-disable-next-line no-console
+  console.log(
+    `[api/_db] initialized: useSupabase=${useSupabase} IS_PRODUCTION=${
+      process.env.VERCEL === "1" || process.env.NODE_ENV === "production"
+    }`,
+  );
+} catch (e) {
+  // ignore logging errors
 }
 
 const IS_PRODUCTION =
@@ -26,12 +49,17 @@ function ensureNotMissingSupabase() {
   }
 }
 
-const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
-const DB_FILE = path.join(DATA_DIR, "db.json");
+const DATA_DIR = process.env.DATA_DIR || null; // resolved lazily when needed
 
-function ensureLocalDb() {
-  if (!fs.existsSync(DATA_DIR)) fs.mkdirSync(DATA_DIR, { recursive: true });
-  if (!fs.existsSync(DB_FILE)) {
+async function ensureLocalDb() {
+  const fs = await import("fs");
+  const path = await import("path");
+  const resolvedDataDir =
+    process.env.DATA_DIR || path.join(process.cwd(), "data");
+  const dbFile = path.join(resolvedDataDir, "db.json");
+  if (!fs.existsSync(resolvedDataDir))
+    fs.mkdirSync(resolvedDataDir, { recursive: true });
+  if (!fs.existsSync(dbFile)) {
     const initial = {
       admin: {
         username: process.env.ADMIN_USERNAME || "abrash",
@@ -45,20 +73,23 @@ function ensureLocalDb() {
       badges: [],
       lastUpdated: Date.now(),
     };
-    fs.writeFileSync(DB_FILE, JSON.stringify(initial, null, 2), "utf-8");
+    fs.writeFileSync(dbFile, JSON.stringify(initial, null, 2), "utf-8");
   }
+  return { DATA_DIR: resolvedDataDir, DB_FILE: dbFile };
 }
 
 async function readLocalDb() {
-  ensureLocalDb();
-  const raw = fs.readFileSync(DB_FILE, "utf-8");
+  const { DATA_DIR: resolvedDataDir, DB_FILE: dbFile } = await ensureLocalDb();
+  const fs = await import("fs");
+  const raw = fs.readFileSync(dbFile, "utf-8");
   return JSON.parse(raw);
 }
 
 async function writeLocalDb(db: AnyObject) {
-  ensureLocalDb();
+  const { DB_FILE: dbFile } = await ensureLocalDb();
+  const fs = await import("fs");
   db.lastUpdated = Date.now();
-  fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), "utf-8");
+  fs.writeFileSync(dbFile, JSON.stringify(db, null, 2), "utf-8");
 }
 
 export async function getMode() {
