@@ -14,6 +14,18 @@ if (SUPABASE_URL && SUPABASE_SERVICE_KEY) {
   useSupabase = true;
 }
 
+const IS_PRODUCTION =
+  process.env.VERCEL === "1" || process.env.NODE_ENV === "production";
+const REQUIRE_SUPABASE_IN_PROD = IS_PRODUCTION && !useSupabase;
+
+function ensureNotMissingSupabase() {
+  if (REQUIRE_SUPABASE_IN_PROD) {
+    throw new Error(
+      "SUPABASE_URL and SUPABASE_SERVICE_KEY are required in production (set them in Vercel environment variables).",
+    );
+  }
+}
+
 const DATA_DIR = process.env.DATA_DIR || path.join(process.cwd(), "data");
 const DB_FILE = path.join(DATA_DIR, "db.json");
 
@@ -55,16 +67,25 @@ export async function getMode() {
 
 // Students
 export async function getStudents() {
+  ensureNotMissingSupabase();
   if (useSupabase) {
-    const { data, error } = await supabase.from("students").select("data");
+    const { data, error } = await supabase
+      .from("students")
+      .select("id, username, data, updated_at, created_at");
     if (error) throw error;
-    return data.map((r: any) => r.data);
+    return (data || []).map((r: any) => {
+      const out = r.data || {};
+      if (!out.id && r.id) out.id = r.id;
+      if (!out.username && r.username) out.username = r.username;
+      return out;
+    });
   }
   const db = await readLocalDb();
   return db.students || [];
 }
 
 export async function createStudent(student: AnyObject) {
+  ensureNotMissingSupabase();
   if (useSupabase) {
     const { error } = await supabase
       .from("students")
@@ -80,6 +101,7 @@ export async function createStudent(student: AnyObject) {
 }
 
 export async function updateStudent(id: string, student: AnyObject) {
+  ensureNotMissingSupabase();
   if (useSupabase) {
     const { error } = await supabase
       .from("students")
@@ -97,6 +119,7 @@ export async function updateStudent(id: string, student: AnyObject) {
 }
 
 export async function deleteStudent(id: string) {
+  ensureNotMissingSupabase();
   if (useSupabase) {
     const { error } = await supabase.from("students").delete().eq("id", id);
     if (error) throw error;
@@ -112,10 +135,19 @@ export async function deleteStudent(id: string) {
 
 // Attempts
 export async function getAttempts(studentId?: string) {
+  ensureNotMissingSupabase();
   if (useSupabase) {
-    const { data, error } = await supabase.from("attempts").select("data");
+    const { data, error } = await supabase
+      .from("attempts")
+      .select("id, student_id, data, timestamp, updated_at, created_at");
     if (error) throw error;
-    const attempts = data.map((r: any) => r.data);
+    const attempts = (data || []).map((r: any) => {
+      const out = r.data || {};
+      if (!out.id && r.id) out.id = r.id;
+      if (!out.studentId && r.student_id) out.studentId = r.student_id;
+      if (!out.timestamp && r.timestamp) out.timestamp = r.timestamp;
+      return out;
+    });
     return studentId
       ? attempts.filter((a: any) => a.studentId === studentId)
       : attempts;
@@ -128,13 +160,14 @@ export async function getAttempts(studentId?: string) {
 }
 
 export async function createAttempt(attempt: AnyObject) {
+  ensureNotMissingSupabase();
   if (useSupabase) {
     const { error } = await supabase.from("attempts").insert([
       {
         id: attempt.id,
-        studentId: attempt.studentId,
+        student_id: attempt.studentId || attempt.student_id || null,
         data: attempt,
-        timestamp: attempt.timestamp,
+        timestamp: attempt.timestamp || new Date().toISOString(),
       },
     ]);
     if (error) throw error;
@@ -149,10 +182,19 @@ export async function createAttempt(attempt: AnyObject) {
 
 // Mistakes
 export async function getMistakes(studentId?: string) {
+  ensureNotMissingSupabase();
   if (useSupabase) {
-    const { data, error } = await supabase.from("mistakes").select("data");
+    const { data, error } = await supabase
+      .from("mistakes")
+      .select("id, student_id, data, timestamp, updated_at, created_at");
     if (error) throw error;
-    const mistakes = data.map((r: any) => r.data);
+    const mistakes = (data || []).map((r: any) => {
+      const out = r.data || {};
+      if (!out.id && r.id) out.id = r.id;
+      if (!out.studentId && r.student_id) out.studentId = r.student_id;
+      if (!out.timestamp && r.timestamp) out.timestamp = r.timestamp;
+      return out;
+    });
     return studentId
       ? mistakes.filter((m: any) => m.studentId === studentId)
       : mistakes;
@@ -165,11 +207,12 @@ export async function getMistakes(studentId?: string) {
 }
 
 export async function saveMistakes(mistakes: AnyObject[]) {
+  ensureNotMissingSupabase();
   if (useSupabase) {
     for (const m of mistakes) {
       const { error } = await supabase.from("mistakes").upsert({
         id: m.id,
-        studentId: m.studentId || null,
+        student_id: m.studentId || m.student_id || null,
         data: m,
         timestamp: m.timestamp || new Date().toISOString(),
       });
@@ -189,6 +232,7 @@ export async function saveMistakes(mistakes: AnyObject[]) {
 }
 
 export async function resetDatabase() {
+  ensureNotMissingSupabase();
   if (useSupabase) {
     try {
       // Delete rows
@@ -228,6 +272,7 @@ export async function resetDatabase() {
 }
 
 export async function resetStudentDailyTest(studentId: string) {
+  ensureNotMissingSupabase();
   if (useSupabase) {
     try {
       const today = new Date();
@@ -268,26 +313,41 @@ export async function resetStudentDailyTest(studentId: string) {
 
 // Quest stages & badges
 export async function getQuestStages() {
+  ensureNotMissingSupabase();
   if (useSupabase) {
-    const { data, error } = await supabase.from("quest_stages").select("data");
+    const { data, error } = await supabase
+      .from("quest_stages")
+      .select("id, data, updated_at, created_at");
     if (error) throw error;
-    return data.map((r: any) => r.data);
+    return (data || []).map((r: any) => {
+      const out = r.data || {};
+      if (!out.id && r.id) out.id = r.id;
+      return out;
+    });
   }
   const db = await readLocalDb();
   return db.questStages || [];
 }
 
 export async function getBadges() {
+  ensureNotMissingSupabase();
   if (useSupabase) {
-    const { data, error } = await supabase.from("badges").select("data");
+    const { data, error } = await supabase
+      .from("badges")
+      .select("id, data, updated_at, created_at");
     if (error) throw error;
-    return data.map((r: any) => r.data);
+    return (data || []).map((r: any) => {
+      const out = r.data || {};
+      if (!out.id && r.id) out.id = r.id;
+      return out;
+    });
   }
   const db = await readLocalDb();
   return db.badges || [];
 }
 
 export async function getCounts() {
+  ensureNotMissingSupabase();
   if (useSupabase) {
     const { count: s } = await supabase
       .from("students")
@@ -305,6 +365,7 @@ export async function getCounts() {
 }
 
 export async function getLastUpdated() {
+  ensureNotMissingSupabase();
   if (useSupabase) {
     try {
       // Check updated_at across key tables and return the most recent timestamp
