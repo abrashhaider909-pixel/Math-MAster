@@ -445,6 +445,10 @@ export async function createAttempt(attempt: AnyObject) {
   }
   const db = await readLocalDb();
   db.attempts = db.attempts || [];
+  const existingIdx = db.attempts.findIndex((a: any) => a.id === attempt.id);
+  if (existingIdx !== -1) {
+    return db.attempts[existingIdx];
+  }
   db.attempts.push(attempt);
   await writeLocalDb(db);
   return attempt;

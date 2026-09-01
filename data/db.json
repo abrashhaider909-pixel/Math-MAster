@@ -37,18 +37,17 @@
         "avatar": "🐉",
         "grade": "master",
         "classCode": "MATH-808",
-        "totalXP": 3748,
+        "totalXP": 3898,
         "level": 7,
         "title": "Calculation Champion",
-        "streakDays": 14,
-        "lastActiveDate": "2026-08-29",
+        "streakDays": 15,
+        "lastActiveDate": "2026-08-30",
         "soundEnabled": true,
         "unlockedBadges": [
-          "cheetah_speed",
-          "apex_score",
           "lightning_reaction",
           "streak_overlord",
           "xp_titan",
+          "iron_wall",
           "dodging_warlord",
           "the_centurion"
         ],
@@ -69,9 +68,9 @@
         "assignedTimePerQuestionSec": 5,
         "assignedQuestionCount": 25,
         "assignedMode": "multiplication",
-        "testsCompleted": 2,
-        "avgAccuracy": 28,
-        "avgSpeedSec": 1.1
+        "testsCompleted": 4,
+        "avgAccuracy": 64,
+        "avgSpeedSec": 2
       }
     },
     {
@@ -162,7 +161,9 @@
         "streakDays": 1,
         "lastActiveDate": "2026-08-29",
         "soundEnabled": true,
-        "unlockedBadges": [],
+        "unlockedBadges": [
+          "cheetah_speed"
+        ],
         "starsCollected": 0,
         "assignedMinTable": 2,
         "assignedMaxTable": 12,
@@ -185,6 +186,55 @@
         "testsCompleted": 2,
         "avgAccuracy": 33,
         "avgSpeedSec": 1.2
+      }
+    },
+    {
+      "id": "std_1788232230643_86nh",
+      "username": "hh",
+      "password": "123",
+      "name": "h",
+      "avatar": "🧑‍🎓",
+      "grade": "explorer",
+      "classCode": "MATH-808",
+      "createdAt": "2026-09-01T03:10:30.676Z",
+      "assignedMinTable": 2,
+      "assignedMaxTable": 3,
+      "assignedCustomTables": [
+        2,
+        3
+      ],
+      "assignedTimePerQuestionSec": 10,
+      "assignedQuestionCount": 10,
+      "assignedMode": "multiplication",
+      "profile": {
+        "id": "std_1788232230643_86nh",
+        "username": "hh",
+        "name": "h",
+        "avatar": "🧑‍🎓",
+        "grade": "explorer",
+        "classCode": "MATH-808",
+        "totalXP": 259,
+        "level": 3,
+        "title": "Equation Explorer",
+        "streakDays": 1,
+        "lastActiveDate": "2026-09-01",
+        "soundEnabled": true,
+        "unlockedBadges": [
+          "apex_score"
+        ],
+        "starsCollected": 0,
+        "assignedMinTable": 2,
+        "assignedMaxTable": 3,
+        "assignedCustomTables": [
+          2,
+          3
+        ],
+        "assignedTimePerQuestionSec": 10,
+        "assignedQuestionCount": 10,
+        "assignedMode": "multiplication",
+        "testsCompleted": 1,
+        "avgAccuracy": 90,
+        "avgSpeedSec": 1.7
       }
     }
   ],
@@ -1232,6 +1282,157 @@
         }
       ],
       "syncedAt": "2026-08-29T07:55:18.390Z"
+    },
+    {
+      "id": "att_test_1788110278081_1",
+      "studentId": "std_zara",
+      "xpGained": 50,
+      "score": 100,
+      "accuracy": 100,
+      "totalQuestions": 10,
+      "correctQuestions": 10,
+      "totalTimeSpentSec": 30,
+      "avgTimePerQuestionSec": 3,
+      "questionLogs": [],
+      "timestamp": "2026-08-30T17:17:58.103Z",
+      "isSynced": true
+    },
+    {
+      "id": "att_test_1788110278171_2",
+      "studentId": "std_zara",
+      "xpGained": 100,
+      "score": 200,
+      "accuracy": 100,
+      "totalQuestions": 10,
+      "correctQuestions": 10,
+      "totalTimeSpentSec": 30,
+      "avgTimePerQuestionSec": 3,
+      "questionLogs": [],
+      "timestamp": "2026-08-30T17:17:58.172Z",
+      "isSynced": true
+    },
+    {
+      "id": "attempt_1788232284569_qosh",
+      "studentId": "std_1788232230643_86nh",
+      "studentUsername": "hh",
+      "studentName": "h",
+      "timestamp": "2026-09-01T03:11:24.570Z",
+      "timeLimitPerQuestionSec": 10,
+      "tableRange": {
+        "min": 2,
+        "max": 3
+      },
+      "mode": "multiplication",
+      "totalQuestions": 10,
+      "correctQuestions": 9,
+      "score": 259,
+      "accuracy": 90,
+      "totalTimeSpentSec": 17.3,
+      "avgTimePerQuestionSec": 1.7,
+      "xpGained": 259,
+      "isSynced": true,
+      "questionLogs": [
+        {
+          "id": "log_1788232260041_0",
+          "questionText": "3 × 2 = ?",
+          "tableNumber": 3,
+          "multiplier": 2,
+          "correctAnswer": "6",
+          "studentAnswer": "6",
+          "isCorrect": true,
+          "timeSpentSec": 2.7
+        },
+        {
+          "id": "log_1788232262725_1",
+          "questionText": "7 × 2 = ?",
+          "tableNumber": 2,
+          "multiplier": 7,
+          "correctAnswer": "14",
+          "studentAnswer": "14",
+          "isCorrect": true,
+          "timeSpentSec": 1.7
+        },
+        {
+          "id": "log_1788232264981_2",
+          "questionText": "3 × 2 = ?",
+          "tableNumber": 3,
+          "multiplier": 2,
+          "correctAnswer": "6",
+          "studentAnswer": "6",
+          "isCorrect": true,
+          "timeSpentSec": 1.2
+        },
+        {
+          "id": "log_1788232267532_3",
+          "questionText": "3 × 11 = ?",
+          "tableNumber": 3,
+          "multiplier": 11,
+          "correctAnswer": "33",
+          "studentAnswer": "33",
+          "isCorrect": true,
+          "timeSpentSec": 1.6
+        },
+        {
+          "id": "log_1788232270125_4",
+          "questionText": "10 × 3 = ?",
+          "tableNumber": 3,
+          "multiplier": 10,
+          "correctAnswer": "30",
+          "studentAnswer": "30",
+          "isCorrect": true,
+          "timeSpentSec": 1.6
+        },
+        {
+          "id": "log_1788232272787_5",
+          "questionText": "4 × 2 = ?",
+          "tableNumber": 2,
+          "multiplier": 4,
+          "correctAnswer": "8",
+          "studentAnswer": "8",
+          "isCorrect": true,
+          "timeSpentSec": 1.7
+        },
+        {
+          "id": "log_1788232275303_6",
+          "questionText": "2 × 2 = ?",
+          "tableNumber": 2,
+          "multiplier": 2,
+          "correctAnswer": "4",
+          "studentAnswer": "14",
+          "isCorrect": false,
+          "timeSpentSec": 1.5
+        },
+        {
+          "id": "log_1788232278068_7",
+          "questionText": "9 × 2 = ?",
+          "tableNumber": 2,
+          "multiplier": 9,
+          "correctAnswer": "18",
+          "studentAnswer": "18",
+          "isCorrect": true,
+          "timeSpentSec": 1.8
+        },
+        {
+          "id": "log_1788232281066_8",
+          "questionText": "2 × 12 = ?",
+          "tableNumber": 2,
+          "multiplier": 12,
+          "correctAnswer": "24",
+          "studentAnswer": "24",
+          "isCorrect": true,
+          "timeSpentSec": 2
+        },
+        {
+          "id": "log_1788232283565_9",
+          "questionText": "2 × 11 = ?",
+          "tableNumber": 2,
+          "multiplier": 11,
+          "correctAnswer": "22",
+          "studentAnswer": "22",
+          "isCorrect": true,
+          "timeSpentSec": 1.5
+        }
+      ]
     }
   ],
   "mistakes": [
@@ -1487,6 +1688,31 @@
       },
       "studentAnswer": "31",
       "timestamp": "2026-08-29T07:55:18.388Z",
+      "retryCount": 1,
+      "mastered": false
+    },
+    {
+      "id": "mistake_1788232284575_lxw",
+      "studentId": "std_1788232230643_86nh",
+      "question": {
+        "id": "dq_1788232273822_6_s8qfn",
+        "operation": "multiplication",
+        "difficulty": "explorer",
+        "text": "2 × 2 = ?",
+        "options": [
+          "6",
+          "4",
+          "2",
+          "14"
+        ],
+        "correctAnswer": "4",
+        "explanation": "2 multiplied by 2 equals 4. (Table of 2)",
+        "hint": "Recall your Table of 2: 2 × 2 = 4.",
+        "tableNumber": 2,
+        "multiplier": 2
+      },
+      "studentAnswer": "14",
+      "timestamp": "2026-09-01T03:11:24.575Z",
       "retryCount": 1,
       "mastered": false
     }

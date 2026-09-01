@@ -979,6 +979,16 @@ app.post("/api/attempts", (req, res) => {
   attempt.timestamp = attempt.timestamp || now.toISOString();
   attempt.isSynced = true;
 
+  const existingAttempt = db.attempts.find((a) => a.id === attempt.id);
+  if (existingAttempt) {
+    return res.status(200).json({
+      success: true,
+      attempt: existingAttempt,
+      student: studentIndex !== -1 ? db.students[studentIndex] : null,
+      duplicate: true,
+    });
+  }
+
   (async () => {
     db.attempts.push(attempt);
     if (prismaEnabled && prisma) {

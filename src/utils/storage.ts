@@ -754,6 +754,10 @@ export const StorageService = {
       students[idx].assignedQuestionCount = profile.assignedQuestionCount;
       students[idx].assignedMode = profile.assignedMode;
       this.saveStudents(students);
+      // Persist XP/profile changes to the server so background sync doesn't overwrite them
+      ApiService.updateStudent(students[idx].id, students[idx]).catch((e) =>
+        console.warn("Server profile sync failed:", e),
+      );
     }
   },
 
@@ -849,115 +853,196 @@ export const StorageService = {
    * If offline, stores in offline queue and marks isSynced=false.
    */
   recordDodgingAttempt(attempt: DodgingTestAttempt): {
-    attempt: DodgingTestAttempt;
-    isSynced: boolean;
-    pendingSyncCount: number;
-    updatedProfile: StudentProfile;
-    updatedStats: StudentStats;
-    newBadgesUnlocked: AchievementBadge[];
-  } {
-    const isOnline = typeof navigator !== "undefined" ? navigator.onLine : true;
-    attempt.isSynced = isOnline;
-    if (isOnline) {
-      attempt.syncedAt = new Date().toISOString();
-    }
+  attempt: DodgingTestAttempt;
+  isSynced: boolean;
+  pendingSyncCount: number;
+  updatedProfile: StudentProfile;
+  updatedStats: StudentStats;
+  newBadgesUnlocked: AchievementBadge[];
+} {
+  const isOnline =
+    typeof navigator !== "undefined" ? navigator.onLine : true;
 
-    // Save into main attempts ledger
-    const attempts = this.getAllAttempts();
+  // Always start as unsynced until the server actually confirms receipt.
+  attempt.isSynced = false;
+
+  // Save into the local attempts ledger immediately.
+  const attempts = this.getAllAttempts();
+  const existingLocalIdx = attempts.findIndex((a) => a.id === attempt.id);
+  const isNewLocalAttempt = existingLocalIdx === -1;
+
+  if (isNewLocalAttempt) {
     attempts.unshift(attempt);
     this.saveAllAttempts(attempts);
+  }
 
-    // Sync to centralized server in real-time
-    ApiService.submitAttempt(attempt).catch((e) =>
-      console.warn("Server attempt submit failed:", e),
-    );
+  // Always put the attempt into the pending queue first.
+  // It will be removed only after the server confirms successful sync.
+  const queue = this.getOfflineQueue();
 
-    // If offline, add to pending queue
-    if (!isOnline) {
-      const queue = this.getOfflineQueue();
-      queue.unshift(attempt);
-      this.saveOfflineQueue(queue);
+  if (!queue.some((queued) => queued.id === attempt.id)) {
+    queue.unshift(attempt);
+    this.saveOfflineQueue(queue);
+  }
+
+  // If online, try to sync immediately.
+  // IMPORTANT: isSynced becomes true only after server success.
+  if (isOnline) {
+    ApiService.submitAttempt(attempt)
+      .then((result) => {
+        if (result.success) {
+          const currentAttempts = this.getAllAttempts();
+          const localIndex = currentAttempts.findIndex(
+            (a) => a.id === attempt.id,
+          );
+
+          if (localIndex >= 0) {
+            currentAttempts[localIndex].isSynced = true;
+            currentAttempts[localIndex].syncedAt =
+              new Date().toISOString();
+            this.saveAllAttempts(currentAttempts);
+          }
+
+          const currentQueue = this.getOfflineQueue().filter(
+            (a) => a.id !== attempt.id,
+          );
+          this.saveOfflineQueue(currentQueue);
+
+          if (result.student && result.student.profile) {
+            this.saveProfile(result.student.profile);
+          }
+        } else {
+          console.warn(
+            "Server rejected attempt; keeping it in offline queue.",
+          );
+        }
+      })
+      .catch((e) => {
+        console.warn(
+          "Server attempt submit failed; keeping attempt queued:",
+          e,
+        );
+      });
+  }
+
+  // Update Student Profile & Stats locally.
+  const student =
+    this.getStudentById(attempt.studentId) || this.getCurrentStudent();
+
+  const profile = student.profile;
+  const stats = this.getStats();
+  const today = new Date().toISOString().split("T")[0];
+
+  // Compute updated aggregates. Only add XP if attempt is new locally.
+  if (isNewLocalAttempt) {
+    profile.totalXP += Number(attempt.xpGained) || 0;
+  }
+
+  const levelInfo = this.calculateLevel(profile.totalXP);
+  profile.level = levelInfo.level;
+  profile.title = levelInfo.title;
+
+  // Daily streak check.
+  if (profile.lastActiveDate !== today) {
+    const yesterday = new Date(Date.now() - 86400000)
+      .toISOString()
+      .split("T")[0];
+
+    if (profile.lastActiveDate === yesterday) {
+      profile.streakDays += 1;
+    } else {
+      profile.streakDays = 1;
     }
 
-    // Update Student Profile & Stats
-    const student =
-      this.getStudentById(attempt.studentId) || this.getCurrentStudent();
-    const profile = student.profile;
-    const stats = this.getStats();
-    const badges = this.getBadges();
-    const today = new Date().toISOString().split("T")[0];
+    profile.lastActiveDate = today;
+  }
 
-    // Compute updated aggregates
-    profile.totalXP += attempt.xpGained;
-    const levelInfo = this.calculateLevel(profile.totalXP);
-    profile.level = levelInfo.level;
-    profile.title = levelInfo.title;
+  // Recalculate student averages.
+  const studentAttempts = attempts.filter(
+    (a) => a.studentId === student.id,
+  );
 
-    // Daily streak check
-    if (profile.lastActiveDate !== today) {
-      const yesterday = new Date(Date.now() - 86400000)
-        .toISOString()
-        .split("T")[0];
-      if (profile.lastActiveDate === yesterday) {
-        profile.streakDays += 1;
-      } else {
-        profile.streakDays = 1;
-      }
-      profile.lastActiveDate = today;
-    }
+  profile.testsCompleted = studentAttempts.length;
 
-    // Recalculate student averages
-    const studentAttempts = attempts.filter((a) => a.studentId === student.id);
-    profile.testsCompleted = studentAttempts.length;
-    const totalAcc = studentAttempts.reduce((acc, a) => acc + a.accuracy, 0);
-    profile.avgAccuracy = Math.round(totalAcc / studentAttempts.length);
-    const totalSpeed = studentAttempts.reduce(
-      (acc, a) => acc + a.avgTimePerQuestionSec,
+  if (studentAttempts.length > 0) {
+    const totalAcc = studentAttempts.reduce(
+      (acc, a) => acc + (Number(a.accuracy) || 0),
       0,
     );
+
+    profile.avgAccuracy = Math.round(
+      totalAcc / studentAttempts.length,
+    );
+
+    const totalSpeed = studentAttempts.reduce(
+      (acc, a) =>
+        acc + (Number(a.avgTimePerQuestionSec) || 0),
+      0,
+    );
+
     profile.avgSpeedSec = parseFloat(
       (totalSpeed / studentAttempts.length).toFixed(1),
     );
+  } else {
+    profile.avgAccuracy = 0;
+    profile.avgSpeedSec = 0;
+  }
 
-    // Update Stats object
-    stats.totalQuestions += attempt.totalQuestions;
-    stats.totalCorrect += attempt.correctQuestions;
-    stats.totalTimeSec += attempt.totalTimeSpentSec;
-    stats.dodgingAttempts = studentAttempts;
+  // Update Stats.
+  stats.totalQuestions += Number(attempt.totalQuestions) || 0;
+  stats.totalCorrect += Number(attempt.correctQuestions) || 0;
+  stats.totalTimeSec += Number(attempt.totalTimeSpentSec) || 0;
+  stats.dodgingAttempts = studentAttempts;
 
-    // Update Table Mastery
-    if (!stats.tableMastery) stats.tableMastery = {};
+  // Update Table Mastery.
+  if (!stats.tableMastery) {
+    stats.tableMastery = {};
+  }
+
+  if (Array.isArray(attempt.questionLogs)) {
     attempt.questionLogs.forEach((log) => {
       const t = log.tableNumber;
+
       if (!stats.tableMastery[t]) {
-        stats.tableMastery[t] = { total: 0, correct: 0 };
+        stats.tableMastery[t] = {
+          total: 0,
+          correct: 0,
+        };
       }
+
       stats.tableMastery[t].total += 1;
+
       if (log.isCorrect) {
         stats.tableMastery[t].correct += 1;
       }
     });
+  }
 
-    // Re-evaluate competitive record badges across all student attempts
-    const evaluated = this.evaluateCompetitiveBadges();
-    const currentStudentBadges = evaluated.filter((b) => b.unlocked);
+  // Re-evaluate competitive badges.
+  const evaluated = this.evaluateCompetitiveBadges();
+  const currentStudentBadges = evaluated.filter(
+    (b) => b.unlocked,
+  );
 
-    profile.unlockedBadges = currentStudentBadges.map((b) => b.id);
+  profile.unlockedBadges = currentStudentBadges.map(
+    (b) => b.id,
+  );
 
-    // Save everything
-    this.saveProfile(profile);
-    this.saveStats(stats);
-    this.saveBadges(evaluated);
+  // Save local state.
+  this.saveProfile(profile);
+  this.saveStats(stats);
+  this.saveBadges(evaluated);
 
-    return {
-      attempt,
-      isSynced: attempt.isSynced,
-      pendingSyncCount: this.getPendingOfflineCount(),
-      updatedProfile: profile,
-      updatedStats: stats,
-      newBadgesUnlocked: currentStudentBadges,
-    };
-  },
+  return {
+    attempt,
+    isSynced: false,
+    pendingSyncCount: this.getPendingOfflineCount(),
+    updatedProfile: profile,
+    updatedStats: stats,
+    newBadgesUnlocked: currentStudentBadges,
+  };
+},
+  
 
   /**
    * Returns current local date formatted as YYYY-MM-DD
@@ -1232,21 +1317,35 @@ export const StorageService = {
       return { syncedCount: 0, remainingCount: 0 };
     }
 
-    const attempts = this.getAllAttempts();
     const now = new Date().toISOString();
-
-    // Mark all queued attempts as synced
-    queue.forEach((q) => {
-      const idx = attempts.findIndex((a) => a.id === q.id);
-      if (idx >= 0) {
-        attempts[idx].isSynced = true;
-        attempts[idx].syncedAt = now;
-      }
-    });
-
-    this.saveAllAttempts(attempts);
     const count = queue.length;
-    this.saveOfflineQueue([]); // Cleared
+
+    queue.forEach((q) => {
+      ApiService.submitAttempt(q)
+        .then((result) => {
+          if (result.success) {
+            const attempts = this.getAllAttempts();
+            const idx = attempts.findIndex((a) => a.id === q.id);
+            if (idx >= 0) {
+              attempts[idx].isSynced = true;
+              attempts[idx].syncedAt = now;
+              this.saveAllAttempts(attempts);
+            }
+
+            const currentQueue = this.getOfflineQueue().filter(
+              (item) => item.id !== q.id,
+            );
+            this.saveOfflineQueue(currentQueue);
+
+            if (result.student && result.student.profile) {
+              this.saveProfile(result.student.profile);
+            }
+          }
+        })
+        .catch((e) => {
+          console.warn("Server attempt submit failed for offline attempt:", e);
+        });
+    });
 
     return { syncedCount: count, remainingCount: 0 };
   },
